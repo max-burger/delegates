@@ -20,7 +20,7 @@ All analysis were done in Stata version 16:
 - Add-on packages are included in __scripts/libraries/stata__ and do not need to be installed by user. The names, installation sources, and installation dates of these packages are available in __scripts/libraries/stata/stata.trk__.
 
 ## Instructions
-1.	Save the folder __‘replication_NCC’__ to your local drive.
+1.	Save the folder __‘replication_ncc’__ to your local drive.
 2.	Open the master script __‘run.do’__ and change the global pointing to the working direction (line 20) to the location where you save the folder on your local drive 
 3.	Run the master script __‘run.do’__  to replicate the analysis and generate all tables and figures reported in the paper and supplementary online materials
 
