@@ -10,7 +10,7 @@ __Classification:__ Social Sciences, Economic Sciences <br>
 __Keywords:__ Technological optimism, Carbon pricing, Climate delay, Mindset, Leverage points <br>
 
 ## Abstract
-
+One paradigm contributing to climate delay is the belief that technological innovation such as capturing and storing carbon can decouple economic growth from emissions in order to achieve the 1.5°C target without systemic changes. Based on surveys with UNFCCC COP24 delegates, higher belief in technological solutions related to climate change is associated with accepting higher temperature increases by 2100 and recommending lower carbon prices. While technology is important, relying solely on potential future advancements increases the risk of irreversible and catastrophic environmental and societal consequences. Our research emphasizes the importance of mindsets and paradigms in the pursuit of  climate action.
 
 ## License
 The data and code are licensed under a Creative Commons Attribution 4.0 International Public License. See __LICENSE.txt__ for details.
