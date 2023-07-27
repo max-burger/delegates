@@ -1,0 +1,65 @@
+{\rtf1\fs24
+\trowd\trgaph75\trleft-75\intbl\trqc\clbrdrt\brdrs\cellx3600\clbrdrt\brdrs\cellx6624\clbrdrt\brdrs\cellx8496\clbrdrt\brdrs\cellx12528\clbrdrt\brdrs\cellx14976
+\ql \cell\qc (1)\cell\qc (2)\cell\qc (3)\cell\qc (4)\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3600\cellx6624\cellx8496\cellx12528\cellx14976
+\ql \cell\qc \cell\qc \cell\qc \cell\qc Carbon price (ln\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3600\cellx6624\cellx8496\cellx12528\cellx14976
+\ql \cell\qc \cell\qc \cell\qc Carbon price < 60USD Probit\cell\qc USD) (OLS\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3600\cellx6624\cellx8496\cellx12528\cellx14976
+\trowd\trgaph75\trleft-75\trqc\clbrdrb\brdrs\cellx3600\clbrdrb\brdrs\cellx6624\clbrdrb\brdrs\cellx8496\clbrdrb\brdrs\cellx12528\clbrdrb\brdrs\cellx14976
+\ql VARIABLES\cell\qc Carbon price < 60USD\cell\qc Carbon price\cell\qc Winsor\cell\qc Winsor)\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3600\cellx6624\cellx8496\cellx12528\cellx14976
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+\ql temp_rise\cell\qc 0.00\cell\qc -0.02\cell\qc 0.00\cell\qc -0.01\cell\row
+\ql \cell\qc (0.03)\cell\qc (0.12)\cell\qc (0.03)\cell\qc (0.12)\cell\row
+\ql tech_ms_pca\cell\qc 0.06***\cell\qc -0.21***\cell\qc \cell\qc \cell\row
+\ql \cell\qc (0.02)\cell\qc (0.07)\cell\qc \cell\qc \cell\row
+\ql info_cc_1\cell\qc 0.03\cell\qc -0.14\cell\qc 0.03\cell\qc -0.13\cell\row
+\ql \cell\qc (0.07)\cell\qc (0.27)\cell\qc (0.07)\cell\qc (0.27)\cell\row
+\ql info_cc_2\cell\qc -0.07\cell\qc 0.01\cell\qc -0.07\cell\qc 0.01\cell\row
+\ql \cell\qc (0.06)\cell\qc (0.21)\cell\qc (0.06)\cell\qc (0.21)\cell\row
+\ql info_cc_3\cell\qc -0.07\cell\qc 0.39\cell\qc -0.07\cell\qc 0.39\cell\row
+\ql \cell\qc (0.08)\cell\qc (0.35)\cell\qc (0.08)\cell\qc (0.35)\cell\row
+\ql info_cc_4\cell\qc -0.05\cell\qc 0.04\cell\qc -0.05\cell\qc 0.04\cell\row
+\ql \cell\qc (0.08)\cell\qc (0.28)\cell\qc (0.08)\cell\qc (0.28)\cell\row
+\ql info_cc_5\cell\qc -0.08\cell\qc 0.16\cell\qc -0.08\cell\qc 0.15\cell\row
+\ql \cell\qc (0.09)\cell\qc (0.31)\cell\qc (0.09)\cell\qc (0.31)\cell\row
+\ql orga2\cell\qc 0.09\cell\qc -0.02\cell\qc 0.09\cell\qc -0.02\cell\row
+\ql \cell\qc (0.09)\cell\qc (0.30)\cell\qc (0.09)\cell\qc (0.30)\cell\row
+\ql orga3\cell\qc 0.06\cell\qc 0.06\cell\qc 0.07\cell\qc 0.05\cell\row
+\ql \cell\qc (0.09)\cell\qc (0.37)\cell\qc (0.10)\cell\qc (0.37)\cell\row
+\ql orga4\cell\qc 0.08\cell\qc -0.05\cell\qc 0.09\cell\qc -0.05\cell\row
+\ql \cell\qc (0.08)\cell\qc (0.26)\cell\qc (0.08)\cell\qc (0.26)\cell\row
+\ql cops_attended\cell\qc 0.01***\cell\qc -0.04***\cell\qc 0.01***\cell\qc -0.04***\cell\row
+\ql \cell\qc (0.00)\cell\qc (0.01)\cell\qc (0.00)\cell\qc (0.01)\cell\row
+\ql edu1\cell\qc -0.10\cell\qc 0.13\cell\qc -0.10\cell\qc 0.12\cell\row
+\ql \cell\qc (0.07)\cell\qc (0.28)\cell\qc (0.07)\cell\qc (0.28)\cell\row
+\ql edu3\cell\qc -0.11\cell\qc 0.49\cell\qc -0.11\cell\qc 0.48\cell\row
+\ql \cell\qc (0.09)\cell\qc (0.35)\cell\qc (0.09)\cell\qc (0.35)\cell\row
+\ql edu4\cell\qc -0.23**\cell\qc 0.22\cell\qc -0.22**\cell\qc 0.22\cell\row
+\ql \cell\qc (0.10)\cell\qc (0.35)\cell\qc (0.10)\cell\qc (0.35)\cell\row
+\ql edu5\cell\qc -0.06\cell\qc 0.19\cell\qc -0.07\cell\qc 0.23\cell\row
+\ql \cell\qc (0.10)\cell\qc (0.36)\cell\qc (0.10)\cell\qc (0.36)\cell\row
+\ql 2.income_level\cell\qc 0.03\cell\qc -0.23\cell\qc 0.03\cell\qc -0.22\cell\row
+\ql \cell\qc (0.08)\cell\qc (0.35)\cell\qc (0.08)\cell\qc (0.35)\cell\row
+\ql 3.income_level\cell\qc 0.14\cell\qc -0.13\cell\qc 0.14\cell\qc -0.12\cell\row
+\ql \cell\qc (0.10)\cell\qc (0.36)\cell\qc (0.10)\cell\qc (0.36)\cell\row
+\ql 4.income_level\cell\qc -0.31***\cell\qc 0.65*\cell\qc -0.31***\cell\qc 0.63*\cell\row
+\ql \cell\qc (0.10)\cell\qc (0.36)\cell\qc (0.10)\cell\qc (0.36)\cell\row
+\ql tech_ms_pca_win\cell\qc \cell\qc \cell\qc 0.06***\cell\qc -0.23***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.02)\cell\qc (0.08)\cell\row
+\ql Constant\cell\qc \cell\qc 3.56***\cell\qc \cell\qc 3.56***\cell\row
+\ql \cell\qc \cell\qc (0.53)\cell\qc \cell\qc (0.53)\cell\row
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+\ql Observations\cell\qc 277\cell\qc 277\cell\qc 277\cell\qc 277\cell\row
+\ql R-squared\cell\qc \cell\qc 0.16\cell\qc \cell\qc 0.16\cell\row
+\ql Pseudo R2\cell\qc 0.193\cell\qc \cell\qc 0.192\cell\qc \cell\row
+\ql Information sources\cell\qc 0.450\cell\qc 0.798\cell\qc 0.448\cell\qc 0.801\cell\row
+\ql Organization working for\cell\qc 0.569\cell\qc 0.996\cell\qc 0.551\cell\qc 0.997\cell\row
+\ql Socioeconomics\cell\qc 0.275\cell\qc 0.711\cell\qc 0.283\cell\qc 0.709\cell\row
+\trowd\trgaph75\trleft-75\trqc\trbrdrb\brdrs\clbrdrb\brdrs\cellx3600\clbrdrb\brdrs\cellx6624\clbrdrb\brdrs\cellx8496\clbrdrb\brdrs\cellx12528\clbrdrb\brdrs\cellx14976
+\ql Adjusted R2\cell\qc \cell\qc 0.101\cell\qc \cell\qc 0.101\cell\row
+\pard\qc
+Standard errors in parentheses\par
+*** p<0.01, ** p<0.05, * p<0.1\par
+}
