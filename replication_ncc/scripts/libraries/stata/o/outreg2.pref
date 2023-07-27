@@ -1,3 +1,0 @@
-26 Jun 2023
-using `"C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\analysis/results/tables/table_s4.doc"'
-addstat("Adjusted R2", .1007887242553192, "Information sources", .8013446313298895, "Organization working for", .9967844984589027, "Socioeconomics", .7088734693025653) adec(3) word ctitle("Carbon price" "(ln, USD)" "(OLS, Winsor)") dec(2) append
