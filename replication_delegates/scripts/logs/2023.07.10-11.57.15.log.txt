@@ -1,0 +1,1734 @@
+--------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Del
+> egates\8_Submission\NSUST\analysis/scripts/logs/2023.07.10-11.57.15.log.txt
+  log type:  text
+ opened on:  10 Jul 2023, 11:57:15
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time: 10 Jul 2023 11:57:15
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red //select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, that is "xx yy
+>  zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces transparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "255 176 0" ///
+>  5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "220 38 127*0.4
+> " "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "220 38 127*1.7
+> " "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#arealine p#p
+> ie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_label tick_label
+>  minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+. 
+. 
+. *--------------------------------------------------
+. * Run processing and analysis scripts
+. *--------------------------------------------------
+. do "$working_ANALYSIS\scripts\01 - clean.do"
+
+. *-----------------
+. *   Cleaning & Generating
+. *-----------------
+. 
+. use "$working_ANALYSIS\data\delegates_raw.dta", clear
+
+. 
+. 
+. 
+. *---------
+. *   Generating variables
+. *----------
+. 
+. // Sociodemographics
+. * Education
+. tab edu, generate(edu)
+
+     Field in which |
+  highes degree was |
+           obtained |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+    Natural Science |        126       45.49       45.49
+     Social Science |         55       19.86       65.34
+Mix: Social&Natural |         47       16.97       82.31
+                Law |         26        9.39       91.70
+              Other |         23        8.30      100.00
+--------------------+-----------------------------------
+              Total |        277      100.00
+
+. 
+. * Organization currently working for
+. gen orga = .
+(277 missing values generated)
+
+. replace orga = 1 if organization == 1 | organization == 2 // International (11) & national
+>  (168) gov orga 
+(179 real changes made)
+
+. replace orga = 2 if organization == 3 //  University/Research Institute
+(33 real changes made)
+
+. replace orga = 3 if organization == 5 //  Environmental NGO
+(25 real changes made)
+
+. replace orga = 4 if organization == 4 |  organization == 6 |  organization == 7 //  Privat
+> e Company (n=8), Non-environmental NGO (n=6), Other (n=26)
+(40 real changes made)
+
+. tab organization
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. lab define orga_lab 1 "Governmental Organization" 2 "University/Research Institute" 3 "Env
+> ironmental NGO" 4 "Other"
+
+. lab val orga orga_lab
+
+. tab orga, gen(orga)
+
+                         orga |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+    Governmental Organization |        179       64.62       64.62
+University/Research Institute |         33       11.91       76.53
+            Environmental NGO |         25        9.03       85.56
+                        Other |         40       14.44      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. 
+. 
+. // Temperature rise deemed acceptable
+. ** Temperature above 1.5 degrees
+. gen temp_above = .
+(277 missing values generated)
+
+. replace temp_above = 0 if temp_rise <= 1.5
+(216 real changes made)
+
+. replace temp_above = 1 if temp_rise > 1.5
+(61 real changes made)
+
+. lab var temp_above "Temperature rise above 1.5°C deemed acceptable"
+
+. 
+. /*
+> Very few people suggested temperatures of 2.5°C or higher to be acceptable:
+> 2.5°C -> 9
+> 3.0°C -> 4
+> 3.5°C -> 2
+> 4.0°C -> 2
+> 4.5°C -> 0
+> 5.0°C -> 4
+> Therefore, for the illustration Figure 1a all temperature suggestions of 2.5°C or more are
+>  summarized under >= 2.5°C
+> */
+. gen temp_rise2 = temp_rise
+
+. replace temp_rise2 = 2.5 if temp_rise >= 2.5
+(12 real changes made)
+
+. tostring temp_rise2, gen(temp_rise3)
+temp_rise3 generated as str3
+
+. sort temp_rise
+
+. lab define temp 1 "0" 2 ".5" 3 "1" 4 "1.5", replace
+
+. encode temp_rise3, gen(temp_rise_cropped) lab(temp)
+
+. lab var temp_rise_cropped"All those suggesting 2.5 or more collected in 2.5"
+
+. drop temp_rise2 temp_rise3
+
+. 
+. 
+. 
+. 
+. 
+. // Global carbon price suggested
+. ** Logarithmic form of suggested carbon prices
+. gen ln_carbon_price = ln(carbon_price + 1)
+
+. label var ln_carbon_price "Natural logarithm of suggested carbon_price"
+
+. 
+. ** Cropping carbon price suggested at 500 for visualization in figure 1a
+. gen carbon_price_cap = carbon_price
+
+. replace carbon_price_cap  = 501 if carbon_price > 500
+(23 real changes made)
+
+. egen mean_carbon_price = mean(carbon_price), by(temp_rise_cropped)
+
+. egen median_carbon_price = median(carbon_price), by(temp_rise_cropped)
+
+. tab temp_rise_cropped , gen(tr)
+
+  All those |
+ suggesting |
+2.5 or more |
+  collected |
+     in 2.5 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |         22        7.94        7.94
+         .5 |         36       13.00       20.94
+          1 |         42       15.16       36.10
+        1.5 |        116       41.88       77.98
+          2 |         40       14.44       92.42
+        2.5 |         21        7.58      100.00
+------------+-----------------------------------
+      Total |        277      100.00
+
+. 
+. ** Price suggested below 60 USD
+. gen price_below = .
+(277 missing values generated)
+
+. replace price_below = 0 if carbon_price >= 60 
+(126 real changes made)
+
+. replace price_below = 1 if carbon_price < 60 
+(151 real changes made)
+
+. lab var price_below "Price suggested < USD60"
+
+. 
+. /*
+> Carbon price suggestions tested
+> Different models suggest different minimal global carbon prices to stay below a certain te
+> mperature rise. In the main paper we use USD60 as thte threshold. As robustness test, we a
+> lso test against other specifications: 82 USD, 185 USD, 281 USD
+> */
+. foreach i in 37 60 82 185 281 {
+  2.         gen price_below_`i' = .
+  3.                 replace price_below_`i'= 1 if carbon_price < `i'
+  4.                 replace price_below_`i'= 0 if carbon_price >=  `i'
+  5.         lab var price_below_`i' "Price below USD `i' suggested"
+  6. }
+(277 missing values generated)
+(119 real changes made)
+(158 real changes made)
+(277 missing values generated)
+(151 real changes made)
+(126 real changes made)
+(277 missing values generated)
+(175 real changes made)
+(102 real changes made)
+(277 missing values generated)
+(224 real changes made)
+(53 real changes made)
+(277 missing values generated)
+(241 real changes made)
+(36 real changes made)
+
+. 
+. ** Shifting
+. // Other countries
+. * To OECD
+. gen shift_to_oecd = price_oecd_now - price_home_now 
+
+. lab var shift_to_oecd "Shift to OECD Countries (if > 0 shift to others)" 
+
+. * To LDCs
+. gen shift_to_ldc = price_ldc_now - price_home_now 
+
+. lab var shift_to_ldc "Shift to LD Countries (if > 0 shift to others)" 
+
+. 
+. * From LDC to OECD
+. gen shift_ldc_oecd = price_oecd_now - price_ldc_now 
+
+. lab var shift_ldc_oecd "Shift from LDC to OECD (if > 0 OECD-countries should pay higher pr
+> ice)"
+
+. 
+. // Shifting responsibilties to the future
+. * Home Country
+. gen shift_future_home = price_home_future - price_home_now 
+
+. lab var shift_future_home "Shift to future: Home (if>0 shift to future)" 
+
+. * OECD Countries
+. gen shift_future_oecd = price_oecd_future - price_oecd_now 
+
+. lab var shift_future_oecd "Shift to future: OECD (if>0 shift to future)"
+
+. * Least Developed Countries
+. gen shift_future_ldc = price_ldc_future  - price_ldc_now
+
+. lab var shift_future_ldc "Shift to future: Home (if>0 shift to future)"
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. // Region- and time-specific carbon price suggestions
+. ** Logarithms of prices suggested prices for home, OECD, LDC / now, future
+. foreach var in price_home_now price_oecd_now price_ldc_now price_home_future price_oecd_fu
+> ture price_ldc_future {
+  2. gen ln_`var' = log(`var' + 1)
+  3. }
+
+. lab var ln_price_home_now "Ln of Price Home Now"
+
+. lab var ln_price_oecd_now "Ln of Price OECD Now"
+
+. lab var ln_price_ldc_now "Ln of Price LDCs Now"
+
+. lab var ln_price_home_future "Ln of Price Home Future"
+
+. lab var ln_price_oecd_future "Ln of Price OECD Future"
+
+. lab var ln_price_ldc_future "Ln of Price LDCs Future"
+
+. 
+. ** Categorizing the ambitions of delegates for prices now and in the future
+. gen ambition_home_fut = .
+(277 missing values generated)
+
+. replace ambition_home_fut = 1 if price_home_now < 60  & price_home_future < 60  // Low amb
+> ition
+(148 real changes made)
+
+. replace ambition_home_fut = 2 if price_home_now < 60  & price_home_future >= 60 // Shift t
+> o future
+(50 real changes made)
+
+. replace ambition_home_fut = 3 if price_home_now >= 60 & price_home_future < 60  // Shift t
+> o now
+(3 real changes made)
+
+. replace ambition_home_fut = 4 if price_home_now >= 60 & price_home_future >= 60 // High am
+> bition
+(76 real changes made)
+
+. lab define ambition_fut 1 "Low ambition" 2 "Future pay more" 3 "Now pay more" 4 "High ambi
+> tion", replace
+
+. lab val ambition_home_fut ambition_fut
+
+. 
+. 
+. 
+. // Principal components
+. ** Technological optimism
+. alpha tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .4617363
+Number of items in the scale:            6
+Scale reliability coefficient:      0.7215
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.51892      1.53219             0.4198       0.4198
+           Comp2 |      .986735      .208226             0.1645       0.5843
+           Comp3 |      .778509       .14601             0.1298       0.7140
+           Comp4 |      .632499     .0669656             0.1054       0.8194
+           Comp5 |      .565533     .0477336             0.0943       0.9137
+           Comp6 |        .5178            .             0.0863       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 | Unexplained 
+    -------------+------------------------------------------------------------+-------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 |           0 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 |           0 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 |           0 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 |           0 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 |           0 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 |           0 
+    ----------------------------------------------------------------------------------------
+
+. predict tech_ms_pca
+(score assumed)
+(5 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 
+    --------------------------------------------------------------------------
+
+. lab var tech_ms_pca "Technological optimism mindset (PCA)"
+
+. 
+. * Winsorized variable of technological optimism (used for robustness test)
+. winsor2 tech_ms_pca, suffix(_win) cuts(5 95)
+
+. 
+. ** Environmental caution
+. alpha env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .1712539
+Number of items in the scale:            5
+Scale reliability coefficient:      0.6299
+
+. pca env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.06297      1.04742             0.4126       0.4126
+           Comp2 |      1.01555      .252677             0.2031       0.6157
+           Comp3 |      .762872     .0617721             0.1526       0.7683
+           Comp4 |        .7011      .243594             0.1402       0.9085
+           Comp5 |      .457505            .             0.0915       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 | Unexplained 
+    -------------+--------------------------------------------------+-------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 |           0 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 |           0 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 |           0 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 |           0 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 |           0 
+    ------------------------------------------------------------------------------
+
+. predict env_ms_pca
+(score assumed)
+(4 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 
+    ----------------------------------------------------------------
+
+. lab var env_ms_pca "Items on environmental caution (PCA)"
+
+. 
+. ** Negotiations
+. pca negotiate1 negotiate2 negotiate3 negotiate4 negotiate5 negotiate6 negotiate7 // negoti
+> ate 3 only contributes marginally
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          7
+                                                 Trace            =          7
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      3.37919      2.07345             0.4827       0.4827
+           Comp2 |      1.30574        .6155             0.1865       0.6693
+           Comp3 |      .690241      .123041             0.0986       0.7679
+           Comp4 |        .5672     .0525768             0.0810       0.8489
+           Comp5 |      .514623      .222608             0.0735       0.9224
+           Comp6 |      .292015     .0410212             0.0417       0.9641
+           Comp7 |      .250994            .             0.0359       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ------------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6     Comp7 
+    -------------+----------------------------------------------------------------------
+      negotiate1 |   0.4365   -0.1649   -0.0558   -0.1124    0.6683    0.1669    0.5404 
+      negotiate2 |   0.4708   -0.1495    0.0111   -0.0908    0.3208   -0.2421   -0.7656 
+      negotiate3 |   0.0285    0.7285    0.6016    0.1722    0.2622    0.0752   -0.0503 
+      negotiate4 |   0.4554   -0.0513    0.2066    0.3137   -0.3368   -0.6568    0.3224 
+      negotiate5 |   0.4437   -0.1187    0.0317    0.4799   -0.3178    0.6676   -0.1047 
+      negotiate6 |   0.3829    0.2205    0.1012   -0.7744   -0.4090    0.1523    0.0661 
+      negotiate7 |   0.1901    0.5953   -0.7622    0.1450    0.0039   -0.0865    0.0014 
+    ------------------------------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+      negotiate1 |           0 
+      negotiate2 |           0 
+      negotiate3 |           0 
+      negotiate4 |           0 
+      negotiate5 |           0 
+      negotiate6 |           0 
+      negotiate7 |           0 
+    ---------------------------
+
+. pca negotiate1 negotiate2 negotiate4 negotiate5 negotiate6 negotiate7 // 
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      3.37729      2.41245             0.5629       0.5629
+           Comp2 |      .964836       .38715             0.1608       0.7237
+           Comp3 |      .577686     .0450152             0.0963       0.8200
+           Comp4 |       .53267      .237527             0.0888       0.9087
+           Comp5 |      .295144     .0427668             0.0492       0.9579
+           Comp6 |      .252377            .             0.0421       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 | Unexplained 
+    -------------+------------------------------------------------------------+-------------
+      negotiate1 |   0.4377   -0.1735    0.0760    0.6677    0.1187    0.5591 |           0 
+      negotiate2 |   0.4719   -0.1629   -0.0010    0.3322   -0.2147   -0.7709 |           0 
+      negotiate4 |   0.4555   -0.1272    0.1389   -0.4707   -0.6719    0.2898 |           0 
+      negotiate5 |   0.4447   -0.1342    0.3763   -0.4285    0.6737   -0.0722 |           0 
+      negotiate6 |   0.3815    0.2590   -0.8516   -0.1666    0.1758    0.0591 |           0 
+      negotiate7 |   0.1870    0.9177    0.3288    0.1043   -0.0599   -0.0182 |           0 
+    ----------------------------------------------------------------------------------------
+
+. predict negotiate_pca
+(score assumed)
+(5 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+      negotiate1 |   0.4377   -0.1735    0.0760    0.6677    0.1187    0.5591 
+      negotiate2 |   0.4719   -0.1629   -0.0010    0.3322   -0.2147   -0.7709 
+      negotiate4 |   0.4555   -0.1272    0.1389   -0.4707   -0.6719    0.2898 
+      negotiate5 |   0.4447   -0.1342    0.3763   -0.4285    0.6737   -0.0722 
+      negotiate6 |   0.3815    0.2590   -0.8516   -0.1666    0.1758    0.0591 
+      negotiate7 |   0.1870    0.9177    0.3288    0.1043   -0.0599   -0.0182 
+    --------------------------------------------------------------------------
+
+. lab var negotiate_pca "PCA: Negotiations (higher values, higher agreement)"
+
+. 
+. ** Negotiate own and other delgeation
+. * Own delegation
+. gen negotiate_pca_own = .
+(277 missing values generated)
+
+. replace negotiate_pca_own = negotiate_pca if t_own_delegation == 1
+(149 real changes made)
+
+. 
+. * Other delegation
+. gen negotiate_pca_other = .
+(277 missing values generated)
+
+. replace negotiate_pca_other = negotiate_pca if t_own_delegation == 0
+(128 real changes made)
+
+. 
+. 
+. 
+. 
+. *--- SAVE ---*
+. save "$working_ANALYSIS\data\delegates_analysis.dta", replace
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8
+> _Submission\NSUST\analysis\data\delegates_analysis.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "$working_ANALYSIS\scripts\02 - analysis.do"
+
+. *--------------------------------------------------
+. * Analysis 
+. *-------------------------------------------------
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. /*
+> Main Body:
+> I)  Fig. 1: Descriptives
+>         a) Carbon price and temperature rise
+>         b) Shifting the burden
+> 
+> II) Fig. 2: Inferential
+>         a) Answers towards technological optimism items
+>         b) Technological optimism mindset and temperature & prices suggested
+> 
+> III) In text-statistics not mentioned in the supplementary online material
+>     - "Delegates vastly agree to limit global warming: The majority perceives a rise above
+>  1.5°C unacceptable (78%), with only few (8%) deeming an increase of 2.5°C or more accepta
+> ble."
+>     - "The median global carbon price recommended in our sample is 50 USD [...]"
+>     - "Roughly half of all delegates interviewed stated rather unambitious carbon prices b
+> elow 60 USD (55%). Only 37% (19% and 13%, respectively) deemed a price of at least 82 USD 
+> (185 USD, 281 USD) as appropriate"
+>     - "This variance in global price suggested is highest for the three low temperature op
+> tions (0°C, 0.5°C and 1°C), with price suggestions ranging from 0 to 2,000 USD (Levene’s t
+> est F(1, 275)=21.7, p<0.001)."
+>     - "Of the 100 delegates [suggesting prices between 0°C und 1°C] in favor of these ambi
+> tious temperature targets, 62% indicated global carbon prices below 60 USD as appropriate 
+> to stay below the temperature target."
+>     - "In addition, we find that participants who claim to be influential in their delegat
+> ion score higher on the technological optimism mindset (r=.23, p<.001)."
+> */
+. 
+. 
+. use "$working_ANALYSIS\data\delegates_analysis.dta", clear
+
+. 
+. 
+. *---------------------------------------
+. *   I) FIGURE 1: Temperature rise deemed acceptable, carbon price suggested, and negotiati
+> on strategy applied
+. *------------------------------
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. 
+. 
+. // Fig 1a: Stripplot: Price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) unique
+
+. egen temp_rise_cropped_freq = count(carbon_price_cap), by(temp_rise_cropped)
+
+. gen  temp_rise_cropped_jitter2 = temp_rise_cropped + (carbon_price_rank *.006) - (temp_ris
+> e_cropped_freq / 2 * 0.006)
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medium) msymbol(o)
+> )              ///
+> (scatter mean_carbon_price temp_rise_cropped , mcolor(538g) msymbol(triangle))            
+>                       ///
+> (scatter median_carbon_price temp_rise_cropped , mcolor(538r) msymbol(square))            
+>                       ///
+> , title("{bf:a }", pos(11) span size($head pt))                                           
+>                ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                               
+>                ///
+> ylabel(, labsize($xylab pt))                                                              
+>                ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 0 0 4))     
+>                ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`n_3')" "' 4 
+> `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , lab
+> size(2.5 pt))                                                ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(3) pos(6) ring(1) 
+> region(fcolor(%40)))
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\price_temprise.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.tif written in TIFF format
+> )
+
+. 
+. 
+. // Fig. 1b: Shifting the burden to other countries and the future (Descriptives)
+. preserve
+
+. 
+. ** Save number of observations per income-level in local
+. forvalues i = 1/4 {
+  2. sum income_level if income_level == `i'
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         50           1           0          1          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |        103           2           0          2          2
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         56           3           0          3          3
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         68           4           0          4          4
+
+. 
+. ** Collpase observations to receive median
+. collapse (median) price_home_now price_oecd_now price_ldc_now price_home_future price_oecd
+> _future price_ldc_future , by(income_level)
+
+. 
+. ** Reshaping dataset from wide to long
+. foreach var in price_home price_oecd price_ldc {
+  2. rename `var'_now `var'1
+  3. rename `var'_future `var'2
+  4. }
+
+. reshape long price_home price_oecd price_ldc, i(income_level) j(now_future)
+(note: j = 1 2)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                        4   ->       8
+Number of variables                   7   ->       5
+j variable (2 values)                     ->   now_future
+xij variables:
+                price_home1 price_home2   ->   price_home
+                price_oecd1 price_oecd2   ->   price_oecd
+                  price_ldc1 price_ldc2   ->   price_ldc
+-----------------------------------------------------------------------------
+
+. lab define now_future 1 "Now" 2 "Future"
+
+. lab val now_future now_future
+
+. gen income_level_future = .
+(8 missing values generated)
+
+. replace income_level_future  = income_level if now_future == 1
+(4 real changes made)
+
+. replace income_level_future  = income_level + .25 if now_future == 2
+(4 real changes made)
+
+. 
+. ** Draw figure
+. global y = -6
+
+. twoway ///
+>         rspike price_home price_oecd income_level if now_future == 1, vertical lwidth(vthi
+> ck) lcolor(538y%25) xlabel(0(25)150)          || /// Now: Home-OECD
+>         rspike price_home price_ldc income_level if now_future == 1, vertical lwidth(vthic
+> k) lcolor(538bs1%25) xlabel(0(25)150)         || /// Now: Home-LDC
+>         rspike price_home price_oecd income_level_future if now_future == 2, vertical lwid
+> th(vthick) lcolor(538y%25) xlabel(0(25)150)   || /// Future: Home-OECD
+>         rspike price_home price_ldc income_level_future  if now_future == 2, vertical lwid
+> th(vthick) lcolor(538bs1%25) xlabel(0(25)150) || /// Future: Home-LDC
+>     scatter price_ldc  income_level if now_future == 1,  mcolor(538bs1%80)           || //
+> / Now: LDC
+>         scatter price_home income_level if now_future == 1,  mcolor(538g%80)             |
+> | /// Now: Home
+>         scatter price_oecd income_level if now_future == 1,  mcolor(538y%80)             |
+> | /// Now: OECD
+>     scatter price_ldc  income_level_future if now_future == 2,  mcolor(538bs1%80)      || 
+> /// Future: LDC
+>         scatter price_home income_level_future if now_future == 2,  mcolor(538g%80)       
+>  || /// Future: Home
+>         scatter price_oecd income_level_future if now_future == 2,  mcolor(538y%80)       
+>  || /// Future: OECDw-Future: LDC, High
+>     line price_home income_level_future if income_level == 1,  lcolor(538g%40)  lpattern(d
+> ash) || /// Now-Future: Home, Low
+>         line price_home income_level_future if income_level == 2,  lcolor(538g%40)  lpatte
+> rn(dash) || /// Now-Future: Home, Low-Mid
+>         line price_home income_level_future if income_level == 3,  lcolor(538g%40)  lpatte
+> rn(dash) || /// Now-Future: Home, Upper-Mid
+>         line price_home income_level_future if income_level == 4,  lcolor(538g%40)  lpatte
+> rn(dash)    /// Now-Future: Home, High
+>         title("{bf:b }", pos(11) span size($head pt))                                     
+>                        ///
+>         ytitle("Area-specific carbon price (median, in USD/tCO2)", size($xytitle pt))     
+>                        ///
+>     ylabel(0 25 50 75 100 125 150, labsize($xylab pt) noticks nogrid) ymtick(25 50 75 100 
+> 125 150, grid)     ///
+>         yline(0, lcolor(gs12%40) lpattern(solid))                                         
+>                        ///
+>         xtitle(Income level (country), size($xytitle pt) margin(0 0 0 4))                 
+>                        ///
+>         xlabel(1.125 `" "Low" "(n=`n_1')" "'  2.125 `" "Low-Mid" "(n=`n_2')" "' 3.125 `" "
+> Up-Mid" "(n=`n_3')" "' 4.125 `" "High" "(n=`n_4')" "', labsize(2.5 pt)) ///
+>         ttext($y 1 "Now " $y 1.25 "Future" $y 2  "Now" $y 2.25 "Future" $y 3 "Now"  $y 3.2
+> 5 "Future" $y 4 "Now" $y 4.25 "Future", orientation(vertical) placement(north) color(gs10)
+>  size(7pt)) /// Y X "Text"  
+>                 legend(order(5 "Price LDC" 2 "Diff LDC-Home" 6 "Price Home" 11 "Diff Home 
+> Now-Future" 7 "Price OECD" 3 "Diff Home-OECD") cols(2) pos(6) ring(1) size($legend pt) reg
+> ion(fcolor(%40))) graphregion(fcolor(none))
+(note:  named style thin not found in class linestyle, default attributes used)
+
+. graph save "$working_ANALYSIS\results\intermediate\shift_burden_by_incomelevel", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\shift_burden_by_incomelevel.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\shift_burden_by_incomelevel.tif", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\shift_burden_by_incomelevel.tif written i
+> n TIFF format)
+
+. restore
+
+. 
+. // Combine Graph a and b
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"  "$working_ANALYSIS\
+> results\intermediate\shift_burden_by_incomelevel", rows(1) scale(1.3) graphregion(margin(z
+> ero))
+error (1) reading file
+Error in file, skipping lines:
+ <EndItem>
+source and target types are not compatible
+     may not assign instances of incompatible classes
+error (4019) reading file
+Error in file, skipping lines:
+ .style.editstyle boxstyle( shadestyle( color(none))) editcopy
+.sersets[1] = .__Map.K8c8d1d8.ref
+.sersets[2] = .__Map.K8c8d2c8.ref
+.sersets[3] = .__Map.K8c8d4f8.ref
+.sersets[4] = .__Map.K8c8c3c8.ref
+.sersets[5] = .__Map.K8c8c5a8.ref
+.sersets[6] = .__Map.K8c8ccd8.ref
+.insert (plotregion1 = .plotregion.new , style(scheme twoway) graph(__key(91d2a58))) at 1 1
+.plotregion1.Declare plot1 = .y2xview_g.new , type(rspike) serset() yvariable() xvariable() 
+>    plotregion(__key(91d5d98)) style(scheme p1) ybvar()
+.plotregion1.plot1.style.editstyle line(color(538y%25)) area(linestyle(color(538y%25))) line
+> (width(vthick)) area(linestyle(width(vthick))) editcopy
+.plotregion1.plot1.bar_drop_to.setstyle , style(x)
+.plotregion1.Declare plot2 = .y2xview_g.new , type(rspike) serset() yvariable() xvariable() 
+>    plotregion(__key(91d5d98)) style(scheme p2) ybvar()
+.plotregion1.plot2.style.editstyle line(color(538bs1%25)) area(linestyle(color(538bs1%25))) 
+> line(width(vthick)) area(linestyle(width(vthick))) editcopy
+.plotregion1.plot2.bar_drop_to.setstyle , style(x)
+.plotregion1.Declare plot3 = .y2xview_g.new , type(rspike) serset() yvariable() xvariable() 
+>    plotregion(__key(91d5d98)) style(scheme p3) ybvar()
+.plotregion1.plot3.style.editstyle line(color(538y%25)) area(linestyle(color(538y%25))) line
+> (width(vthick)) area(linestyle(width(vthick))) editcopy
+.plotregion1.plot3.bar_drop_to.setstyle , style(x)
+.plotregion1.Declare plot4 = .y2xview_g.new , type(rspike) serset() yvariable() xvariable() 
+>    plotregion(__key(91d5d98)) style(scheme p4) ybvar()
+.plotregion1.plot4.style.editstyle line(color(538bs1%25)) area(linestyle(color(538bs1%25))) 
+> line(width(vthick)) area(linestyle(width(vthick))) editcopy
+.plotregion1.plot4.bar_drop_to.setstyle , style(x)
+.plotregion1.Declare plot5 = .yxview.new , type(scatter) serset() yvariable() xvariable()   
+>  plotregion(__key(91d5d98)) style(scheme p5) 
+.plotregion1.plot5.style.editstyle marker(fillcolor(538bs1%80) linestyle(color(538bs1%80))) 
+> editcopy
+.plotregion1.Declare plot6 = .yxview.new , type(scatter) serset() yvariable() xvariable()   
+>  plotregion(__key(91d5d98)) style(scheme p6) 
+.plotregion1.plot6.style.editstyle marker(fillcolor(538g%80) linestyle(color(538g%80))) edit
+> copy
+.plotregion1.Declare plot7 = .yxview.new , type(scatter) serset() yvariable() xvariable()   
+>  plotregion(__key(91d5d98)) style(scheme p7) 
+.plotregion1.plot7.style.editstyle marker(fillcolor(538y%80) linestyle(color(538y%80))) edit
+> copy
+.plotregion1.Declare plot8 = .yxview.new , type(scatter) serset() yvariable() xvariable()   
+>  plotregion(__key(91d5d98)) style(scheme p8) 
+.plotregion1.plot8.style.editstyle marker(fillcolor(538bs1%80) linestyle(color(538bs1%80))) 
+> editcopy
+.plotregion1.Declare plot9 = .yxview.new , type(scatter) serset() yvariable() xvariable()   
+>  plotregion(__key(91d5d98)) style(scheme p1) 
+.plotregion1.plot9.style.editstyle marker(fillcolor(538g%80) linestyle(color(538g%80))) edit
+> copy
+.plotregion1.Declare plot10 = .yxview.new , type(scatter) serset() yvariable() xvariable()  
+>   plotregion(__key(91d5d98)) style(scheme p2) 
+.plotregion1.plot10.style.editstyle marker(fillcolor(538y%80) linestyle(color(538y%80))) edi
+> tcopy
+.plotregion1.Declare plot11 = .yxview.new , type(line) serset() yvariable() xvariable()    p
+> lotregion(__key(91d5d98)) style(scheme p3line) 
+.plotregion1.plot11.style.editstyle line(color(538g%40)) area(linestyle(color(538g%40))) lin
+> e(pattern(dash)) area(linestyle(pattern(dash))) editcopy
+.plotregion1.Declare plot12 = .yxview.new , type(line) serset() yvariable() xvariable()    p
+> lotregion(__key(91d5d98)) style(scheme p4line) 
+.plotregion1.plot12.style.editstyle line(color(538g%40)) area(linestyle(color(538g%40))) lin
+> e(pattern(dash)) area(linestyle(pattern(dash))) editcopy
+.plotregion1.Declare plot13 = .yxview.new , type(line) serset() yvariable() xvariable()    p
+> lotregion(__key(91d5d98)) style(scheme p5line) 
+.plotregion1.plot13.style.editstyle line(color(538g%40)) area(linestyle(color(538g%40))) lin
+> e(pattern(dash)) area(linestyle(pattern(dash))) editcopy
+.plotregion1.Declare plot14 = .yxview.new , type(line) serset() yvariable() xvariable()    p
+> lotregion(__key(91d5d98)) style(scheme p6line) 
+.plotregion1.plot14.style.editstyle line(color(538g%40)) area(linestyle(color(538g%40))) lin
+> e(pattern(dash)) area(linestyle(pattern(dash))) editcopy
+.plotregion1.clear_scales
+.plotregion1.reset_scales , noclear
+.n_views = 14
+.n_plotregions = 1
+.last_style = 14
+.x_scales = `" "1""'
+.y_scales = `" "1""'
+.create_axes 1 1 "9" "" 9
+.style.editstyle legend_ring(1) editcopy
+.style.editstyle legend_position(6) editcopy
+.insert (legend = .legend_g.new, graphs(__key(91d2a58)) style(scheme)) below plotregion1 , r
+> ing(1) 
+.legend.style.editstyle box_alignment(S) editcopy
+.legend.style.editstyle boxstyle( shadestyle( color(%40))) editcopy
+.legend.style.editstyle labelstyle( size(8 pt)) editcopy
+.legend.holes = ""
+.legend.style.editstyle  cols(2) editcopy
+.legend.insert (note = .sized_textbox.new, mtextq(`""') style(scheme leg_note) ) below plotr
+> egion1 , ring(3) 
+.legend.note.style.editstyle box_alignment(SW) editcopy
+.legend.note.style.editstyle horizontal(left) editcopy
+.legend.insert (caption = .sized_textbox.new, mtextq(`""') style(scheme leg_caption) ) below
+>  plotregion1 , ring(5) 
+.legend.caption.style.editstyle box_alignment(SW) editcopy
+.legend.caption.style.editstyle horizontal(left) editcopy
+.legend.insert (subtitle = .sized_textbox.new, mtextq(`""') style(scheme leg_subtitle) ) abo
+> ve plotregion1 , ring(6) 
+.legend.subtitle.style.editstyle box_alignment(N) editcopy
+.legend.subtitle.style.editstyle horizontal(center) editcopy
+.legend.insert (title = .sized_textbox.new, mtextq(`""') style(scheme leg_title) ) above plo
+> tregion1 , ring(7) 
+.legend.title.style.editstyle box_alignment(N) editcopy
+.legend.title.style.editstyle horizontal(center) editcopy
+.legend.rebuild
+.legend.parse_order 5 "Price LDC" 2 "Diff LDC-Home" 6 "Price Home" 11 "Diff Home Now-Future"
+>  7 "Price OECD" 3 "Diff Home-OECD"
+.legend.repositionkeys
+.xaxis1.major.clear
+.xaxis1.major.range_ticks 0 150 25
+.xaxis1.reset_scale reinit
+.xaxis1.major.clear
+.xaxis1.major.range_ticks 0 150 25
+.xaxis1.reset_scale reinit
+.xaxis1.major.clear
+.xaxis1.major.range_ticks 0 150 25
+.xaxis1.reset_scale reinit
+.xaxis1.major.clear
+.xaxis1.major.range_ticks 0 150 25
+.xaxis1.reset_scale reinit
+.xaxis1.major.clear
+.xaxis1.major.add_ticks  1.125 `" "Low" "(n=50)" "' 2.125 `" "Low-Mid" "(n=103)" "' 3.125 `"
+>  "Up-Mid" "(n=56)" "' 4.125 `" "High" "(n=68)" "' ,  
+.xaxis1.major.set_default 0
+.xaxis1.reset_scale reinit
+.xaxis1.style.editstyle majorstyle( tickstyle(  textstyle( size(2.5 pt))) ) editcopy
+.xaxis1.title.edit , mtextq(`"Income level (country)"')   replace
+.xaxis1.title.style.editstyle  size(8 pt) margin(0 0 0 4) editcopy
+.yaxis1.major.clear
+.yaxis1.major.add_ticks  0 25 50 75 100 125 150 ,  
+.yaxis1.major.set_default 0
+.yaxis1.reset_scale reinit
+.yaxis1.style.editstyle draw_major_grid(no) editcopy
+.yaxis1.style.editstyle majorstyle( tickstyle( show_ticks(no)  textstyle( size(8 pt))) ) edi
+> tcopy
+.yaxis1.minornl.clear
+.yaxis1.minornl.add_ticks  25 50 75 100 125 150 ,  
+.yaxis1.minornl.set_default 0
+.yaxis1.reset_scale reinit
+.yaxis1.style.editstyle draw_minornl_grid(yes) editcopy
+.yaxis1.title.edit , mtextq(`""Area-specific carbon price (median, in USD/tCO2)""')   replac
+> e
+.yaxis1.title.style.editstyle  size(8 pt) editcopy
+tempname glsty
+. = .gridlinestyle.new, style(scheme)
+..editstyle  linestyle( color(gs12%40) pattern(solid)) editcopy
+.yaxis1.plotregion.declare_xyline .gridline_g.new 0 , ordinate(y) plotregion() styleref() 
+.insert (r1title = .sized_textbox.new, mtextq(`""') style(scheme r1title) orientation(vertic
+> al)) rightof plotregion1 , ring(1) 
+.insert (r2title = .sized_textbox.new, mtextq(`""') style(scheme r2title) orientation(vertic
+> al)) rightof plotregion1 , ring(2) 
+.insert (l1title = .sized_textbox.new, mtextq(`""') style(scheme l1title) orientation(vertic
+> al)) leftof plotregion1 , ring(1) 
+.insert (l2title = .sized_textbox.new, mtextq(`""') style(scheme l2title) orientation(vertic
+> al)) leftof plotregion1 , ring(2) 
+.insert (t1title = .sized_textbox.new, mtextq(`""') style(scheme t1title) ) above plotregion
+> 1 , ring(1) 
+.insert (t2title = .sized_textbox.new, mtextq(`""') style(scheme t2title) ) above plotregion
+> 1 , ring(2) 
+.insert (b1title = .sized_textbox.new, mtextq(`""') style(scheme b1title) ) below plotregion
+> 1 , ring(1) 
+.insert (b2title = .sized_textbox.new, mtextq(`""') style(scheme b1title) ) below plotregion
+> 1 , ring(2) 
+.insert (note = .sized_textbox.new, mtextq(`""') style(scheme note) ) below plotregion1 , ri
+> ng(4) 
+.note.style.editstyle box_alignment(SW) editcopy
+.note.style.editstyle horizontal(left) editcopy
+.insert (caption = .sized_textbox.new, mtextq(`""') style(scheme caption) ) below plotregion
+> 1 , ring(5) 
+.caption.style.editstyle box_alignment(SW) editcopy
+.caption.style.editstyle horizontal(left) editcopy
+.insert (subtitle = .sized_textbox.new, mtextq(`""') style(scheme subtitle) ) above plotregi
+> on1 , ring(6) 
+.subtitle.style.editstyle box_alignment(N) editcopy
+.subtitle.style.editstyle horizontal(center) editcopy
+.style.editstyle title_position(11) editcopy
+.style.editstyle title_span(yes) editcopy
+.insert (title = .sized_textbox.new, mtextq(`""b ""') style(scheme title) ) above plotregion
+> 1 , ring(7) spancols(all) spanfit(left right)
+.title.style.editstyle box_alignment(NW) editcopy
+.title.style.editstyle horizontal(left) editcopy
+.title.style.editstyle  size(10 pt) editcopy
+.insert (spacert = .spacer.new) above plotregion1 , ring(11)
+.insert (spacerb = .spacer.new) below plotregion1 , ring(11)
+.insert (spacerl = .spacer.new) leftof plotregion1 , ring(11)
+.insert (spacerr = .spacer.new) rightof plotregion1 , ring(11)
+local tfmt 
+.plotregion1.Declare textbox1 = .pos_textbox.new , ypos(-6) xpos(1) forcesized mtextq(`" `"N
+> ow "'"') style(scheme text_option) datesok()
+.plotregion1.textbox1._set_orientation vertical
+.plotregion1.textbox1.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox2 = .pos_textbox.new , ypos(-6) xpos(1.25) forcesized mtextq(`" 
+> `"Future"'"') style(scheme text_option) datesok()
+.plotregion1.textbox2._set_orientation vertical
+.plotregion1.textbox2.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox3 = .pos_textbox.new , ypos(-6) xpos(2) forcesized mtextq(`" `"N
+> ow"'"') style(scheme text_option) datesok()
+.plotregion1.textbox3._set_orientation vertical
+.plotregion1.textbox3.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox4 = .pos_textbox.new , ypos(-6) xpos(2.25) forcesized mtextq(`" 
+> `"Future"'"') style(scheme text_option) datesok()
+.plotregion1.textbox4._set_orientation vertical
+.plotregion1.textbox4.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox5 = .pos_textbox.new , ypos(-6) xpos(3) forcesized mtextq(`" `"N
+> ow"'"') style(scheme text_option) datesok()
+.plotregion1.textbox5._set_orientation vertical
+.plotregion1.textbox5.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox6 = .pos_textbox.new , ypos(-6) xpos(3.25) forcesized mtextq(`" 
+> `"Future"'"') style(scheme text_option) datesok()
+.plotregion1.textbox6._set_orientation vertical
+.plotregion1.textbox6.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox7 = .pos_textbox.new , ypos(-6) xpos(4) forcesized mtextq(`" `"N
+> ow"'"') style(scheme text_option) datesok()
+.plotregion1.textbox7._set_orientation vertical
+.plotregion1.textbox7.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+local tfmt 
+.plotregion1.Declare textbox8 = .pos_textbox.new , ypos(-6) xpos(4.25) forcesized mtextq(`" 
+> `"Future"'"') style(scheme text_option) datesok()
+.plotregion1.textbox8._set_orientation vertical
+.plotregion1.textbox8.style.editstyle  box_alignment(north) size(7pt) color(gs10) editcopy
+.command = `"twoway rspike price_home price_oecd income_level if now_future == 1, vertical l
+> width(vthick) lcolor(538y%25) xlabel(0(25)150)          ||         rspike price_home price
+> _ldc income_level if now_future == 1, vertical lwidth(vthick) lcolor(538bs1%25) xlabel(0(2
+> 5)150)         ||         rspike price_home price_oecd income_level_future if now_future =
+> = 2, vertical lwidth(vthick) lcolor(538y%25) xlabel(0(25)150)   ||         rspike price_ho
+> me price_ldc income_level_future  if now_future == 2, vertical lwidth(vthick) lcolor(538bs
+> 1%25) xlabel(0(25)150) ||     scatter price_ldc  income_level if now_future == 1,  mcolor(
+> 538bs1%80)           ||         scatter price_home income_level if now_future == 1,  mcolo
+> r(538g%80)             ||         scatter price_oecd income_level if now_future == 1,  mco
+> lor(538y%80)             ||     scatter price_ldc  income_level_future if now_future == 2,
+>   mcolor(538bs1%80)      ||         scatter price_home income_level_future if now_future =
+> = 2,  mcolor(538g%80)        ||         scatter price_oecd income_level_future if now_futu
+> re == 2,  mcolor(538y%80)        ||     line price_home income_level_future if income_leve
+> l == 1,  lcolor(538g%40)  lpattern(dash) ||         line price_home income_level_future if
+>  income_level == 2,  lcolor(538g%40)  lpattern(dash) ||         line price_home income_lev
+> el_future if income_level == 3,  lcolor(538g%40)  lpattern(dash) ||         line price_hom
+> e income_level_future if income_level == 4,  lcolor(538g%40)  lpattern(dash)            ti
+> tle("b ", pos(11) span size(10 pt))                                                       
+>              ytitle("Area-specific carbon price (median, in USD/tCO2)", size(8 pt))       
+>                          ylabel(0 25 50 75 100 125 150, labsize(8 pt) noticks nogrid) ymti
+> ck(25 50 75 100 125 150, grid)             yline(0, lcolor(gs12%40) lpattern(solid))      
+>                                                                   xtitle(Income level (cou
+> ntry), size(8 pt) margin(0 0 0 4))                                                xlabel(1
+> .125 `" "Low" "(n=50)" "'  2.125 `" "Low-Mid" "(n=103)" "' 3.125 `" "Up-Mid" "(n=56)" "' 4
+> .125 `" "High" "(n=68)" "', labsize(2.5 pt))         ttext(-6 1 "Now " -6 1.25 "Future" -6
+>  2  "Now" -6 2.25 "Future" -6 3 "Now"  -6 3.25 "Future" -6 4 "Now" -6 4.25 "Future", orien
+> tation(vertical) placement(north) color(gs10) size(7pt))                 legend(order(5 "P
+> rice LDC" 2 "Diff LDC-Home" 6 "Price Home" 11 "Diff Home Now-Future" 7 "Price OECD" 3 "Dif
+> f Home-OECD") cols(2) pos(6) ring(1) size(8 pt) region(fcolor(%40))) graphregion(fcolor(no
+> ne))"'
+.date = "10 Jul 2023"
+.time = "11:57:23"
+.dta_file = ""
+.dta_date = ""
+<EndItem>
+__000003.gversion invalid name
+r(198);
+
+end of do-file
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. *---------------------------------------
+. *   I) FIGURE 1: Temperature rise deemed acceptable, carbon price suggested, and negotiati
+> on strategy applied
+. *------------------------------
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. 
+. 
+. // Fig 1a: Stripplot: Price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) unique
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medium) msymbol(o)
+> )              ///
+> (scatter mean_carbon_price temp_rise_cropped , mcolor(538g) msymbol(triangle))            
+>                       ///
+> (scatter median_carbon_price temp_rise_cropped , mcolor(538r) msymbol(square))            
+>                       ///
+> , title("{bf:a }", pos(11) span size($head pt))                                           
+>                ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                               
+>                ///
+> ylabel(, labsize($xylab pt))                                                              
+>                ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 0 0 4))     
+>                ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`n_3')" "' 4 
+> `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , lab
+> size(2.5 pt))                                                ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(3) pos(6) ring(1) 
+> region(fcolor(%40)))
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\price_temprise.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.tif written in TIFF format
+> )
+
+. 
+. 
+. // Fig. 1b: Shifting the burden to other countries and the future (Descriptives)
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medium) msymbol(o)
+> )              ///
+> (scatter mean_carbon_price temp_rise_cropped ,  msymbol(triangle))                        
+>           ///
+> (scatter median_carbon_price temp_rise_cropped ,  msymbol(square))                        
+>           ///
+> , title("{bf:a }", pos(11) span size($head pt))                                           
+>                ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                               
+>                ///
+> ylabel(, labsize($xylab pt))                                                              
+>                ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 0 0 4))     
+>                ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`n_3')" "' 4 
+> `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , lab
+> size(2.5 pt))                                                ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(3) pos(6) ring(1) 
+> region(fcolor(%40)))
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\price_temprise.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.tif written in TIFF format
+> )
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. 
+. 
+. // Fig 1b: Stripplot: Price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) unique
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medium) msymbol(o)
+> )              ///
+> (scatter mean_carbon_price temp_rise_cropped ,  msymbol(triangle))                        
+>           ///
+> (scatter median_carbon_price temp_rise_cropped ,  msymbol(square))                        
+>           ///
+> , title("{bf:a }", pos(11) span size($head pt))                                           
+>                ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                               
+>                ///
+> ylabel(, labsize($xylab pt))                                                              
+>                ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 0 0 4))     
+>                ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`n_3')" "' 4 
+> `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , lab
+> size(2.5 pt))                                                ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) pos(6) ring(1) 
+> region(fcolor(%40)))
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\price_temprise.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\
+> 8_Submission\NSUST\analysis\results\intermediate\price_temprise.tif written in TIFF format
+> )
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. 
+. * Probit, DV: Temperature rise deemed acceptable
+. probit temp_above tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income , 
+> vce(robust)
+
+Iteration 0:   log pseudolikelihood = -146.02941  
+Iteration 1:   log pseudolikelihood = -139.30777  
+Iteration 2:   log pseudolikelihood = -139.25545  
+Iteration 3:   log pseudolikelihood = -139.25543  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(5)      =      11.69
+                                                Prob > chi2       =     0.0393
+Log pseudolikelihood = -139.25543               Pseudo R2         =     0.0464
+
+-------------------------------------------------------------------------------
+              |               Robust
+   temp_above |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+  tech_ms_pca |   .1920029   .0669997     2.87   0.004     .0606859    .3233199
+cops_attended |   .0141172   .0160626     0.88   0.379     -.017365    .0455993
+              |
+ income_level |
+  Low-middle  |   .0967231   .2435484     0.40   0.691    -.3806229    .5740692
+Upper-middle  |   .3446749   .2686914     1.28   0.200    -.1819506    .8713005
+        High  |   .1255714   .2764409     0.45   0.650    -.4162427    .6673855
+              |
+        _cons |  -1.030611   .2149076    -4.80   0.000    -1.451822   -.6093994
+-------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0541891   .0181956     2.98   0.003     .0185264    .0898518
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$output\probit_margi
+> ns_temp2.gph", replace)
+invalid numlist
+r(121);
+
+end of do-file
+
+r(121);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. 
+. * Probit, DV: Temperature rise deemed acceptable
+. probit temp_above tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income , 
+> vce(robust)
+
+Iteration 0:   log pseudolikelihood = -146.02941  
+Iteration 1:   log pseudolikelihood = -139.30777  
+Iteration 2:   log pseudolikelihood = -139.25545  
+Iteration 3:   log pseudolikelihood = -139.25543  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(5)      =      11.69
+                                                Prob > chi2       =     0.0393
+Log pseudolikelihood = -139.25543               Pseudo R2         =     0.0464
+
+-------------------------------------------------------------------------------
+              |               Robust
+   temp_above |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+  tech_ms_pca |   .1920029   .0669997     2.87   0.004     .0606859    .3233199
+cops_attended |   .0141172   .0160626     0.88   0.379     -.017365    .0455993
+              |
+ income_level |
+  Low-middle  |   .0967231   .2435484     0.40   0.691    -.3806229    .5740692
+Upper-middle  |   .3446749   .2686914     1.28   0.200    -.1819506    .8713005
+        High  |   .1255714   .2764409     0.45   0.650    -.4162427    .6673855
+              |
+        _cons |  -1.030611   .2149076    -4.80   0.000    -1.451822   -.6093994
+-------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0541891   .0181956     2.98   0.003     .0185264    .0898518
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$output\probit_margi
+> ns_temp2.gph", replace)
+invalid numlist
+r(121);
+
+end of do-file
+
+r(121);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. coefplot , nokey keep (tech_ms_pca) coeflabels(tech_ms_pca = "Tech optim.", labsize()) xline(0, lpatt
+> ern(dash) lcolor(gs3)) ///
+>  xtitle("Regression estimated impact") msymbol(d) xla(-.2(0.1).2, nogrid) grid(none) levels(95 90) ci
+> opts(lwidth(0.3 1) lcolor(*.8 *.2)  msize() recast(rcap)) mlabel(cond(@pval<.01, "***", cond(@pval<.0
+> 5, "**", cond(@pval<.1, "*", "")))) mlabsize() mlabposition(12) mlabgap(-0.1)
+(note:  named style thin not found in class linestyle, default attributes used)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. 
+. 
+. // Fig. 1c. Coefficient plots temperature rise acceptable and price deemed necessary 
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics edu1 edu3 edu4 edu5 // Education ref. cat.: edu2 (Social Sciences); gender and 
+> age erased to not jepardize anonimity of participants
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics lower_middle_income upper_middle_income high_income // Income level: ref.cat:
+>  low
+
+. 
+. * Save number of observations for display
+. sum tech_ms_pca
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ tech_ms_pca |        277   -5.16e-09    1.587112  -5.130207   2.836653
+
+. local tech_ms_min = r(min)
+
+. local tech_ms_max = r(max)
+
+. 
+. * Probit, DV: Temperature rise deemed acceptable
+. probit temp_above tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income , vce(robust)
+
+Iteration 0:   log pseudolikelihood = -146.02941  
+Iteration 1:   log pseudolikelihood = -132.20566  
+Iteration 2:   log pseudolikelihood = -132.03731  
+Iteration 3:   log pseudolikelihood = -132.03728  
+Iteration 4:   log pseudolikelihood = -132.03728  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(17)     =      25.92
+                                                Prob > chi2       =     0.0759
+Log pseudolikelihood = -132.03728               Pseudo R2         =     0.0958
+
+-------------------------------------------------------------------------------
+              |               Robust
+   temp_above |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+  tech_ms_pca |     .18894   .0692489     2.73   0.006     .0532147    .3246653
+    info_cc_1 |   .1031144   .2185983     0.47   0.637    -.3253303    .5315591
+    info_cc_2 |  -.2912301   .1897123    -1.54   0.125    -.6630594    .0805992
+    info_cc_3 |  -.1798553   .2518557    -0.71   0.475    -.6734833    .3137727
+    info_cc_4 |  -.3564737    .238951    -1.49   0.136    -.8248091    .1118618
+    info_cc_5 |   .1056947   .2845349     0.37   0.710    -.4519834    .6633728
+        orga2 |  -.2843429   .2865893    -0.99   0.321    -.8460477    .2773619
+        orga3 |   .4890618   .3007417     1.63   0.104    -.1003812    1.078505
+        orga4 |  -.1972522   .2726743    -0.72   0.469     -.731684    .3371796
+cops_attended |   .0158743   .0165825     0.96   0.338    -.0166267    .0483754
+         edu1 |   .4337427   .2468786     1.76   0.079    -.0501304    .9176158
+         edu3 |   .4506149   .2991854     1.51   0.132    -.1357778    1.037008
+         edu4 |   .1210853   .3797686     0.32   0.750    -.6232476    .8654181
+         edu5 |  -.0635536   .4155383    -0.15   0.878    -.8779937    .7508866
+              |
+ income_level |
+  Low-middle  |   .0775647   .2579757     0.30   0.764    -.4280583    .5831877
+Upper-middle  |    .458333   .2893949     1.58   0.113    -.1088706    1.025536
+        High  |    .207987   .2924857     0.71   0.477    -.3652744    .7812484
+              |
+        _cons |  -.9166648   .4226364    -2.17   0.030    -1.745017   -.0883126
+-------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0503867   .0179063     2.81   0.005      .015291    .0854824
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$output\probit_margins_temp2.gp
+> h", replace)
+
+Predictive margins                              Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+
+1._at        : tech_ms_pca     =   -5.130207
+
+2._at        : tech_ms_pca     =   -4.130207
+
+3._at        : tech_ms_pca     =   -3.130207
+
+4._at        : tech_ms_pca     =   -2.130207
+
+5._at        : tech_ms_pca     =   -1.130207
+
+6._at        : tech_ms_pca     =   -.1302071
+
+7._at        : tech_ms_pca     =    .8697929
+
+8._at        : tech_ms_pca     =    1.869793
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   .0433143   .0331344     1.31   0.191     -.021628    .1082565
+          2  |   .0622553   .0364523     1.71   0.088    -.0091898    .1337004
+          3  |   .0871098   .0372915     2.34   0.019     .0140197    .1601999
+          4  |   .1187166   .0348856     3.40   0.001     .0503421     .187091
+          5  |   .1576684   .0294556     5.35   0.000     .0999365    .2154003
+          6  |   .2041898   .0246374     8.29   0.000     .1559013    .2524782
+          7  |    .258036   .0301775     8.55   0.000     .1988893    .3171827
+          8  |   .3184364   .0484771     6.57   0.000      .223423    .4134498
+------------------------------------------------------------------------------
+(note: file \probit_margins_temp2.gph not found)
+file \probit_margins_temp2.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5424_000000.tmp"
+
+. *----------------------------------------------------------------------------------------------------
+> ---
+. * OVERVIEW
+. *----------------------------------------------------------------------------------------------------
+> ---
+. *   This script generates tables and figures reported in the manuscript and SOM of the paper:
+. *   CLIMATE DELAY: THE DOWNSIDE OF BELIEVING IN TECHNOLOGICAL FIXES
+. *       Author: Max Burger, Philipps University Marburg
+. *   All experimental data are stored in /data
+. *   All figures reported in the main manuscript and SOM are outputted to /results/figures
+. *   All tables areported in the main manuscript and SOM are outputted to /results/tables
+. *   TO PERFORM A CLEAN RUN, DELETE THE FOLLOWING FOLDER:
+. *    /results
+. *----------------------------------------------------------------------------------------------------
+> ---
+. 
+. 
+. 
+. *--------------------------------------------------
+. * Set global Working Directory
+. *--------------------------------------------------
+. * Define this global macro to point where the replication folder is saved locally that includes this 
+> run.do script
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_
+> Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. * Initialize log and record system parameters
+. clear
+
+. set more off
+
+. cap mkdir "$working_ANALYSIS/scripts/logs"
+
+. cap log close

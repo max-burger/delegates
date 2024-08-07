@@ -1,0 +1,3426 @@
+------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/scripts/logs/2024.02.15-16.
+> 34.42.log.txt
+  log type:  text
+ opened on:  15 Feb 2024, 16:34:42
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time: 15 Feb 2024 16:34:42
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red // select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbo
+> x //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, 
+> that is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces
+>  transparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "
+> 255 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "
+> 220 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "
+> 220 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area 
+> p#arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_la
+> bel tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+. 
+. 
+. *--------------------------------------------------
+. * Run processing and analysis scripts
+. *--------------------------------------------------
+. do "$working_ANALYSIS\scripts\01 - clean.do"
+
+. *-----------------
+. *   Cleaning & Generating
+. *-----------------
+. 
+. use "$working_ANALYSIS\data\delegates_raw.dta", clear
+
+. 
+. *---------
+. *   Generating variables
+. *----------
+. 
+. // Sociodemographics
+. * Education
+. tab edu, generate(edu)
+
+     Field in which |
+  highes degree was |
+           obtained |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+    Natural Science |        126       45.49       45.49
+     Social Science |         55       19.86       65.34
+Mix: Social&Natural |         47       16.97       82.31
+                Law |         26        9.39       91.70
+              Other |         23        8.30      100.00
+--------------------+-----------------------------------
+              Total |        277      100.00
+
+. 
+. * Organization currently working for
+. gen orga = .
+(277 missing values generated)
+
+. replace orga = 1 if organization == 1 | organization == 2 // International (
+> 11) & national (168) gov orga 
+(179 real changes made)
+
+. replace orga = 2 if organization == 3 //  University/Research Institute
+(33 real changes made)
+
+. replace orga = 3 if organization == 5 //  Environmental NGO
+(25 real changes made)
+
+. replace orga = 4 if organization == 4 |  organization == 6 |  organization =
+> = 7 //  Private Company (n=8), Non-environmental NGO (n=6), Other (n=26)
+(40 real changes made)
+
+. tab organization
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. lab define orga_lab 1 "Governmental Organization" 2 "University/Research Ins
+> titute" 3 "Environmental NGO" 4 "Other"
+
+. lab val orga orga_lab
+
+. tab orga, gen(orga)
+
+                         orga |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+    Governmental Organization |        179       64.62       64.62
+University/Research Institute |         33       11.91       76.53
+            Environmental NGO |         25        9.03       85.56
+                        Other |         40       14.44      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. 
+. 
+. // Temperature rise deemed acceptable
+. ** Temperature above 1.5 degrees
+. gen temp_above = .
+(277 missing values generated)
+
+. replace temp_above = 0 if temp_rise <= 1.5
+(216 real changes made)
+
+. replace temp_above = 1 if temp_rise > 1.5
+(61 real changes made)
+
+. lab var temp_above "Temperature rise above 1.5°C deemed acceptable"
+
+. 
+. /*
+> Very few people suggested temperatures of 2.5°C or higher to be acceptable:
+> 2.5°C -> 9
+> 3.0°C -> 4
+> 3.5°C -> 2
+> 4.0°C -> 2
+> 4.5°C -> 0
+> 5.0°C -> 4
+> Therefore, for the illustration Figure 1a all temperature suggestions of 2.5
+> °C or more are summarized under >= 2.5°C
+> */
+. gen temp_rise2 = temp_rise
+
+. replace temp_rise2 = 2.5 if temp_rise >= 2.5
+(12 real changes made)
+
+. tostring temp_rise2, gen(temp_rise3)
+temp_rise3 generated as str3
+
+. sort temp_rise
+
+. lab define temp 1 "0" 2 ".5" 3 "1" 4 "1.5", replace
+
+. encode temp_rise3, gen(temp_rise_cropped) lab(temp)
+
+. lab var temp_rise_cropped"All those suggesting 2.5 or more collected in 2.5"
+
+. drop temp_rise2 temp_rise3
+
+. 
+. 
+. 
+. 
+. 
+. // Global carbon price suggested
+. ** Logarithmic form of suggested carbon prices
+. gen ln_carbon_price = ln(carbon_price + 1)
+
+. label var ln_carbon_price "Natural logarithm of suggested carbon_price"
+
+. 
+. ** Cropping global carbon price suggested at USD500 for visualization in fig
+> ure 1b
+. gen carbon_price_cap = carbon_price
+
+. replace carbon_price_cap  = 501 if carbon_price > 500
+(23 real changes made)
+
+. lab var carbon_price_cap "Carbon price capped at USD500"
+
+. egen mean_carbon_price = mean(carbon_price), by(temp_rise_cropped)
+
+. lab var mean_carbon_price "Mean carbon price (non-capped)"
+
+. egen median_carbon_price = median(carbon_price), by(temp_rise_cropped)
+
+. lab var median_carbon_price "Median carbon price (non-capped)"
+
+. tab temp_rise_cropped , gen(tr)
+
+  All those |
+ suggesting |
+2.5 or more |
+  collected |
+     in 2.5 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |         22        7.94        7.94
+         .5 |         36       13.00       20.94
+          1 |         42       15.16       36.10
+        1.5 |        116       41.88       77.98
+          2 |         40       14.44       92.42
+        2.5 |         21        7.58      100.00
+------------+-----------------------------------
+      Total |        277      100.00
+
+. 
+. 
+. ** Cropping area-specific carbon prices at USD500 for visualization in figur
+> e 1c
+. foreach var in price_home_now price_oecd_now price_ldc_now price_home_future
+>  price_oecd_future price_ldc_future ln_carbon_price {
+  2. gen `var'_cap = `var'
+  3. replace `var'_cap  = 501 if `var' > 500
+  4. lab var `var'_cap "Carbon price capped at USD500"
+  5. egen mean_`var' = mean(`var')
+  6. lab var mean_`var' "Mean carbon price (non-capped)"
+  7. egen median_`var' = median(`var')
+  8. lab var median_`var' "Median carbon price (non-capped)"
+  9. }
+(13 real changes made)
+(23 real changes made)
+(11 real changes made)
+(25 real changes made)
+(36 real changes made)
+(23 real changes made)
+(0 real changes made)
+
+. 
+. 
+. ** Price suggested below 60 USD
+. gen price_below = .
+(277 missing values generated)
+
+. replace price_below = 0 if carbon_price >= 60 
+(126 real changes made)
+
+. replace price_below = 1 if carbon_price < 60 
+(151 real changes made)
+
+. lab var price_below "Price suggested < USD60"
+
+. 
+. /*
+> Carbon price suggestions tested
+> Different models suggest different minimal global carbon prices to stay belo
+> w a certain temperature rise. In the main paper we use USD60 as thte thresho
+> ld. As robustness test, we also test against other specifications: 82 USD, 1
+> 85 USD, 281 USD
+> */
+. foreach i in 37 60 82 185 281 {
+  2.         gen price_below_`i' = .
+  3.                 replace price_below_`i'= 1 if carbon_price < `i'
+  4.                 replace price_below_`i'= 0 if carbon_price >=  `i'
+  5.         lab var price_below_`i' "Price below USD `i' suggested"
+  6. }
+(277 missing values generated)
+(119 real changes made)
+(158 real changes made)
+(277 missing values generated)
+(151 real changes made)
+(126 real changes made)
+(277 missing values generated)
+(175 real changes made)
+(102 real changes made)
+(277 missing values generated)
+(224 real changes made)
+(53 real changes made)
+(277 missing values generated)
+(241 real changes made)
+(36 real changes made)
+
+. 
+. ** Shifting
+. // Other countries
+. * To OECD
+. gen shift_to_oecd = price_oecd_now - price_home_now 
+
+. lab var shift_to_oecd "Shift to OECD Countries (if > 0 shift to others)" 
+
+. * To LDCs
+. gen shift_to_ldc = price_ldc_now - price_home_now 
+
+. lab var shift_to_ldc "Shift to LD Countries (if > 0 shift to others)" 
+
+. 
+. * From LDC to OECD
+. gen shift_ldc_oecd = price_oecd_now - price_ldc_now 
+
+. lab var shift_ldc_oecd "Shift from LDC to OECD (if > 0 OECD-countries should
+>  pay higher price)"
+
+. 
+. // Shifting responsibilties to the future
+. * Home Country
+. gen shift_future_home = price_home_future - price_home_now 
+
+. lab var shift_future_home "Shift to future: Home (if>0 shift to future)" 
+
+. * OECD Countries
+. gen shift_future_oecd = price_oecd_future - price_oecd_now 
+
+. lab var shift_future_oecd "Shift to future: OECD (if>0 shift to future)"
+
+. * Least Developed Countries
+. gen shift_future_ldc = price_ldc_future  - price_ldc_now
+
+. lab var shift_future_ldc "Shift to future: Home (if>0 shift to future)"
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. // Region- and time-specific carbon price suggestions
+. ** Logarithms of prices suggested prices for home, OECD, LDC / now, future
+. foreach var in price_home_now price_oecd_now price_ldc_now price_home_future
+>  price_oecd_future price_ldc_future {
+  2. gen ln_`var' = log(`var' + 1)
+  3. }
+
+. lab var ln_price_home_now "Ln of Price Home Now"
+
+. lab var ln_price_oecd_now "Ln of Price OECD Now"
+
+. lab var ln_price_ldc_now "Ln of Price LDCs Now"
+
+. lab var ln_price_home_future "Ln of Price Home Future"
+
+. lab var ln_price_oecd_future "Ln of Price OECD Future"
+
+. lab var ln_price_ldc_future "Ln of Price LDCs Future"
+
+. 
+. ** Categorizing the ambitions of delegates for prices now and in the future
+. gen ambition_home_fut = .
+(277 missing values generated)
+
+. replace ambition_home_fut = 1 if price_home_now < 60  & price_home_future < 
+> 60  // Low ambition
+(148 real changes made)
+
+. replace ambition_home_fut = 2 if price_home_now < 60  & price_home_future >=
+>  60 // Shift to future
+(50 real changes made)
+
+. replace ambition_home_fut = 3 if price_home_now >= 60 & price_home_future < 
+> 60  // Shift to now
+(3 real changes made)
+
+. replace ambition_home_fut = 4 if price_home_now >= 60 & price_home_future >=
+>  60 // High ambition
+(76 real changes made)
+
+. lab define ambition_fut 1 "Low ambition" 2 "Future pay more" 3 "Now pay more
+> " 4 "High ambition", replace
+
+. lab val ambition_home_fut ambition_fut
+
+. 
+. 
+. 
+. // Principal components
+. ** Technological optimism
+. alpha tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_5 tech_ms_6 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .4247423
+Number of items in the scale:            5
+Scale reliability coefficient:      0.6703
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.17475      1.22935             0.4350       0.4350
+           Comp2 |      .945404      .168293             0.1891       0.6240
+           Comp3 |      .777111       .21128             0.1554       0.7795
+           Comp4 |      .565831     .0289289             0.1132       0.8926
+           Comp5 |      .536902            .             0.1074       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+       tech_ms_1 |   0.4607    0.4038   -0.4509    0.0014    0.6491 
+       tech_ms_2 |   0.5108    0.0330   -0.3453   -0.4817   -0.6219 
+       tech_ms_3 |   0.4410   -0.5503   -0.1772    0.6799   -0.0953 
+       tech_ms_5 |   0.3815    0.5906    0.5725    0.3459   -0.2412 
+       tech_ms_6 |   0.4322   -0.4293    0.5641   -0.4313    0.3531 
+    ----------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+       tech_ms_1 |           0 
+       tech_ms_2 |           0 
+       tech_ms_3 |           0 
+       tech_ms_5 |           0 
+       tech_ms_6 |           0 
+    ---------------------------
+
+. predict tech_ms_pca
+(score assumed)
+(4 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+       tech_ms_1 |   0.4607    0.4038   -0.4509    0.0014    0.6491 
+       tech_ms_2 |   0.5108    0.0330   -0.3453   -0.4817   -0.6219 
+       tech_ms_3 |   0.4410   -0.5503   -0.1772    0.6799   -0.0953 
+       tech_ms_5 |   0.3815    0.5906    0.5725    0.3459   -0.2412 
+       tech_ms_6 |   0.4322   -0.4293    0.5641   -0.4313    0.3531 
+    ----------------------------------------------------------------
+
+. lab var tech_ms_pca "Technological optimism mindset (PCA)"
+
+. 
+. * Winsorized variable of technological optimism (used for robustness test)
+. winsor2 tech_ms_pca, suffix(_win) cuts(5 95)
+
+. 
+. ** Environmental caution
+. alpha env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .1712539
+Number of items in the scale:            5
+Scale reliability coefficient:      0.6299
+
+. pca env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.06297      1.04742             0.4126       0.4126
+           Comp2 |      1.01555      .252677             0.2031       0.6157
+           Comp3 |      .762872     .0617721             0.1526       0.7683
+           Comp4 |        .7011      .243594             0.1402       0.9085
+           Comp5 |      .457505            .             0.0915       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 
+    ----------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+        env_ms_1 |           0 
+        env_ms_2 |           0 
+        env_ms_3 |           0 
+        env_ms_4 |           0 
+        env_ms_5 |           0 
+    ---------------------------
+
+. predict env_ms_pca
+(score assumed)
+(4 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 
+    ----------------------------------------------------------------
+
+. lab var env_ms_pca "Items on environmental caution (PCA)"
+
+. 
+. ** Negotiations
+. pca negotiate1 negotiate2 negotiate3 negotiate4 negotiate5 // 
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      3.29137      2.66767             0.6583       0.6583
+           Comp2 |      .623697     .0886069             0.1247       0.7830
+           Comp3 |      .535091      .237829             0.1070       0.8900
+           Comp4 |      .297261      .044683             0.0595       0.9495
+           Comp5 |      .252578            .             0.0505       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+      negotiate1 |   0.4479   -0.2196   -0.6494    0.1325    0.5585 
+      negotiate2 |   0.4829   -0.1109   -0.3363   -0.2270   -0.7680 
+      negotiate3 |   0.4653   -0.1130    0.4783   -0.6731    0.2983 
+      negotiate4 |   0.4533   -0.3120    0.4854    0.6744   -0.0818 
+      negotiate5 |   0.3798    0.9107    0.0281    0.1518    0.0501 
+    ----------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+      negotiate1 |           0 
+      negotiate2 |           0 
+      negotiate3 |           0 
+      negotiate4 |           0 
+      negotiate5 |           0 
+    ---------------------------
+
+. predict negotiate_pca
+(score assumed)
+(4 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+      negotiate1 |   0.4479   -0.2196   -0.6494    0.1325    0.5585 
+      negotiate2 |   0.4829   -0.1109   -0.3363   -0.2270   -0.7680 
+      negotiate3 |   0.4653   -0.1130    0.4783   -0.6731    0.2983 
+      negotiate4 |   0.4533   -0.3120    0.4854    0.6744   -0.0818 
+      negotiate5 |   0.3798    0.9107    0.0281    0.1518    0.0501 
+    ----------------------------------------------------------------
+
+. lab var negotiate_pca "PCA: Negotiations (higher values, higher agreement)"
+
+. 
+. ** Negotiate own and other delgeation
+. * Own delegation
+. gen negotiate_pca_own = .
+(277 missing values generated)
+
+. replace negotiate_pca_own = negotiate_pca if t_own_delegation == 1
+(149 real changes made)
+
+. 
+. * Other delegation
+. gen negotiate_pca_other = .
+(277 missing values generated)
+
+. replace negotiate_pca_other = negotiate_pca if t_own_delegation == 0
+(128 real changes made)
+
+. 
+. 
+. 
+. ** Merge world bank indicator
+. *merge 1:m country_home using "$working_ANALYSIS\data\world_bank_indicator.d
+> ta"
+. 
+. 
+. 
+. *--- SAVE ---*
+. save "$working_ANALYSIS\data\delegates_analysis.dta", replace
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Don
+> ia_Delegates\8_Submission\NSUST\analysis\data\delegates_analysis.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "$working_ANALYSIS\scripts\02 - analysis.do"
+
+. *--------------------------------------------------
+. * Analysis 
+. *-------------------------------------------------
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. /*
+> Main Body:
+> I)  Fig. 1: Descriptives
+>         a) Carbon price and temperature rise
+>         b) Shifting the burden
+> 
+> II) Fig. 2: Inferential
+>         a) Answers towards technological optimism items
+>         b) Technological optimism mindset and temperature & prices suggested
+> 
+> III) In text-statistics not mentioned in the supplementary online material
+>     - "Delegates vastly agree to limit global warming: The majority perceive
+> s a rise above 1.5°C unacceptable (78%), with only few (8%) deeming an incre
+> ase of 2.5°C or more acceptable."
+>     - "The median global carbon price recommended in our sample is 50 USD [.
+> ..]"
+>     - "Roughly half of all delegates interviewed stated rather unambitious c
+> arbon prices below 60 USD (55%). Only 37% (19% and 13%, respectively) deemed
+>  a price of at least 82 USD (185 USD, 281 USD) as appropriate"
+>     - "This variance in global price suggested is highest for the three low 
+> temperature options (0°C, 0.5°C and 1°C), with price suggestions ranging fro
+> m 0 to 2,000 USD (Levene’s test F(1, 275)=21.7, p<0.001)."
+>     - "Of the 100 delegates [suggesting prices between 0°C und 1°C] in favor
+>  of these ambitious temperature targets, 62% indicated global carbon prices 
+> below 60 USD as appropriate to stay below the temperature target."
+>     - "In addition, we find that participants who claim to be influential in
+>  their delegation score higher on the technological optimism mindset (r=.23,
+>  p<.001)."
+> */
+. 
+. 
+. use "$working_ANALYSIS\data\delegates_analysis.dta", clear
+
+. 
+. 
+. *---------------------------------------
+. *   I) FIGURE 1 
+. *------------------------------
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. global fysize    22 
+
+. global textsize  14 pt
+
+. 
+. 
+. 
+. // Fig 1a: Distribution of answers towards technological optimism items
+. ** Catplot for each item
+. global margins 145 0 1 3 // set margins for all
+
+. global pos_text1 -15 50
+
+. global pos_text2  50 -4
+
+. 
+. mylabels 0(25)100, myscale(@) local(pctlabel) suffix("%") // set label for a
+> xis
+0 "0%" 25 "25%" 50 "50%" 75 "75%" 100 "100%"
+
+. catplot tech_ms_1 , text($pos_text1 "Future generations will be richer and b
+> etter equipped to deal" "with adverse impacts of climate change." $pos_text2
+>  "{it:.46}", size($textsize) place(w) just(right)) stack percent asyvar yla(
+> `pctlabel', nogrid)  title("") bargap(0) blabel(bar, size(medium) format(%9.
+> 0f) pos(center)) l1title("")  b1title("") legend(rows(1) pos(6) ring(1) size
+> (vsmall)) plotregion(margin(zero)) graphregion(margin($margins)) yscale(off)
+>  fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt1.gph 
+> saved)
+
+. catplot tech_ms_2 , text($pos_text1  "Technological innovation e.g., solar g
+> eoengineering offers" "a suitable solution to respond in case of a future cl
+> imate emergency." $pos_text2 "{it:.51}", size($textsize) place(w) just(right
+> )) stack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(
+> bar, size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend
+> (rows(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(m
+> argin($margins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt2.gph 
+> saved)
+
+. catplot tech_ms_3 , text($pos_text1  "The present costs and future benefits 
+> to society must be weighed" "against each other, while deciding about emissi
+> on reduction policies." $pos_text2 "{it:.44}", size($textsize) place(w) just
+> (right)) stack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) b
+> label(bar, size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") 
+> legend(rows(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphre
+> gion(margin($margins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt3", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt3.gph 
+> saved)
+
+. 
+. /* Delete!
+> catplot tech_ms_4 , text($pos_text1 "The usage of conventional energy source
+> s is inevitable as global" "energy demand is too high to be covered by renew
+> able energy." $pos_text2 "{it:.43}", size($textsize) place(w) just(right)) s
+> tack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(bar,
+>  size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend(row
+> s(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(margi
+> n($margins)) yscale(off) fysize($fysize)
+> graph save "$working_ANALYSIS\results\intermediate\fut_opt4", replace
+> */
+. 
+. catplot tech_ms_5 , text($pos_text1 "Technological innovations for climate c
+> hange emerge more likely in a" "free-market economy without much interferenc
+> e from the Government." $pos_text2 "{it:.38}", size($textsize) place(w) just
+> (right)) stack percent asyvar yla(`pctlabel', nogrid labsize(relative3)) yti
+> tle("percent", size(relative3)) title("") bargap(0) blabel(bar, size(medium)
+>  format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(3) pos(6) r
+> ing(1) size(7.5 pt) symxsize(2.5)) plotregion(margin(zero)) graphregion(marg
+> in($margins)) fysize(50)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt5", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt5.gph 
+> saved)
+
+. catplot tech_ms_6 , text($pos_text1 "Transformation towards a sustainable so
+> ciety is possible by making" "productions more resourcesaving and without ha
+> rming the economy." $pos_text2 "{it:.43}" 180 2 "{it:Loading}" "{it:(PCA)}",
+>  size($textsize) place(w) just(right)) stack percent asyvar yla(`pctlabel', 
+> nogrid)  title("") bargap(0) blabel(bar, size(medium) format(%9.0f) pos(cent
+> er)) l1title("")  b1title("") legend(rows(3) pos(6) ring(1) size(7.5 pt) row
+> gap(minuscule) symxsize(2.5)) plotregion(margin(zero)) graphregion(margin($m
+> argins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt6", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt6.gph 
+> saved)
+
+. 
+. * Combine the single plots
+. grc1leg "$working_ANALYSIS\results\intermediate\fut_opt6" "$working_ANALYSIS
+> \results\intermediate\fut_opt3" "$working_ANALYSIS\results\intermediate\fut_
+> opt2" "$working_ANALYSIS\results\intermediate\fut_opt1" "$working_ANALYSIS\r
+> esults\intermediate\fut_opt5" , cols(1) legendfrom("$working_ANALYSIS\result
+> s\intermediate\fut_opt6") title("{bf:a }", size(11 pt) pos(11) ring(15)) gra
+> phregion(margin(2 3 -3 4)) plotregion(margin(0 0 0 5)) 
+
+. gr_edit .legend.plotregion1.DragBy 1 35
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle horizontal(
+> center) editcopy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph2.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph3.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph4.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph5.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. graph save "$working_ANALYSIS\results\intermediate\tech_opt_answers", replac
+> e
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\tech_opt_answ
+> ers.gph saved)
+
+. 
+. 
+. 
+. 
+. // Fig 1b: Global carbon price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) uniqu
+> e
+
+. egen temp_rise_cropped_freq = count(carbon_price_cap), by(temp_rise_cropped)
+
+. gen  temp_rise_cropped_jitter2 = temp_rise_cropped + (carbon_price_rank *.00
+> 6) - (temp_rise_cropped_freq / 2 * 0.006)
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medi
+> um) msymbol(o))              ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                 
+>                              ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\price_temprise.tif", re
+> place
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.tif written in TIFF format)
+
+. 
+. 
+. 
+. // Fig. 1c. Area specific carbon prices
+. * Generate variable defining position of observations on x-axis
+. egen price_rank_h_now = rank(price_home_now_cap), unique
+
+. gen  h_now_jitter = .
+(277 missing values generated)
+
+. replace h_now_jitter = .5 + (price_rank_h_now *.0006)
+(277 real changes made)
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o))
+
+. 
+.               ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                 
+>                              ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+( is not a valid command name
+r(199);
+
+end of do-file
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. // Fig. 1c. Carbon prices home (now/future)
+. * Generate variable defining position of observations on x-axis
+. drop price_rank_* h_*
+
+. foreach var in now future {
+  2. egen price_rank_h_`var' = rank(price_home_`var'_cap), unique
+  3. }
+
+. 
+. gen h_now_jitter = .5 + (price_rank_h_now *.001)
+
+. gen h_future_jitter = 1 + (price_rank_h_future * .001)
+
+. gen h_now_stat = .6
+
+. gen h_future_stat = 1.1
+
+. 
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country (USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize(2.5 pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+end of do-file
+
+. help swiftred
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+    > /global_price.gph not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country (USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize(2.5 pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_
+> price.gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\global_price.tif", repl
+> ace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_
+> price.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph", rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph
+>  not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif
+>  not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" "$working_ANALYSIS/resul
+> ts/intermediate/margins_temp_price.gph", rows(3) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. * Marginsplot
+. combomarginsplot "$working_ANALYSIS\probit_margins_temp2.gph" "$working_ANAL
+> YSIS\probit_margins_price2.gph", labels("Temperature rise {&ge} 2°C acceptab
+> le" "Global carbon price < 60 USD suggested")  xtitle("Technological optimis
+> m mindset (PCA)", size($xytitle)) title("{bf:c }", size($head) pos(11) ring(
+> 15))  xla(-4(2)2, labsize($xylab)) yla(, labsize($xylab))  ytitle("Effects o
+> n probability of" "accepting/suggesting", size($xytitle)) recast(line) recas
+> tci(rarea)  file2opts(msize(6pt)) fileci1opts(recast(rarea) lw(none) fcolor(
+> %20)) fileci2opts(recast(rarea) lw(none) fcolor(%20)) legend(rows(2) pos(11)
+>  ring(0) size($legend) region(fcolor(%20))) graphregion(margin(30 30 0 0)) p
+> lotregion(margin(0 0 0 0)) scale(*0.4) fysize(40) 
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\probit_margins_temp2
+    > .gph not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. * Probit, DV: Temperature rise deemed acceptable
+. probit temp_above tech_ms_pca $info_source $orga cops_attended $socioeconomi
+> cs i.income , vce(robust)
+
+Iteration 0:   log pseudolikelihood = -146.02941  
+Iteration 1:   log pseudolikelihood = -140.67151  
+Iteration 2:   log pseudolikelihood = -140.63846  
+Iteration 3:   log pseudolikelihood = -140.63845  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(5)      =       9.49
+                                                Prob > chi2       =     0.0910
+Log pseudolikelihood = -140.63845               Pseudo R2         =     0.0369
+
+------------------------------------------------------------------------------
+             |               Robust
+  temp_above |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .1689124    .069188     2.44   0.015     .0333063    .3045184
+cops_atten~d |    .015904   .0160542     0.99   0.322    -.0155616    .0473696
+             |
+income_level |
+ Low-middle  |   .0851166   .2444566     0.35   0.728    -.3940095    .5642426
+Upper-mid~e  |   .3232925   .2680562     1.21   0.228     -.202088     .848673
+       High  |   .0284098   .2741779     0.10   0.917     -.508969    .5657886
+             |
+       _cons |  -.9997367   .2149417    -4.65   0.000    -1.421015   -.5784586
+------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0481602   .0191901     2.51   0.012     .0105483    .0857721
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$worki
+> ng_ANALYSIS\probit_margins_temp2.gph", replace)
+invalid numlist
+r(121);
+
+end of do-file
+
+r(121);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. 
+. // Fig. 1d. Coefficient plots global carbon price and home carbon price deem
+> ed necessary 
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics edu1 edu3 edu4 edu5 // Education ref. cat.: edu2 (Soci
+> al Sciences); gender and age erased to not jepardize anonimity of participan
+> ts
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics lower_middle_income upper_middle_income high_income 
+> // Income level: ref.cat: low
+
+. 
+. * Save number of observations for display
+. sum tech_ms_pca
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ tech_ms_pca |        277    1.99e-09    1.474704  -4.940824   2.506011
+
+. local tech_ms_min = r(min)
+
+. local tech_ms_max = r(max)
+
+. 
+. * Probit, DV: Temperature rise deemed acceptable
+. probit temp_above tech_ms_pca $info_source $orga cops_attended $socioeconomi
+> cs i.income , vce(robust)
+
+Iteration 0:   log pseudolikelihood = -146.02941  
+Iteration 1:   log pseudolikelihood = -133.26618  
+Iteration 2:   log pseudolikelihood = -133.11681  
+Iteration 3:   log pseudolikelihood = -133.11679  
+Iteration 4:   log pseudolikelihood = -133.11679  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(17)     =      25.50
+                                                Prob > chi2       =     0.0841
+Log pseudolikelihood = -133.11679               Pseudo R2         =     0.0884
+
+------------------------------------------------------------------------------
+             |               Robust
+  temp_above |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .1700996   .0720687     2.36   0.018     .0288475    .3113516
+   info_cc_1 |     .09382   .2190226     0.43   0.668    -.3354565    .5230965
+   info_cc_2 |  -.2852509   .1894875    -1.51   0.132    -.6566396    .0861378
+   info_cc_3 |  -.2101866   .2499821    -0.84   0.400    -.7001425    .2797694
+   info_cc_4 |  -.3801011   .2366176    -1.61   0.108    -.8438631    .0836608
+   info_cc_5 |   .1264791   .2850819     0.44   0.657    -.4322712    .6852293
+       orga2 |  -.2660148   .2864309    -0.93   0.353    -.8274091    .2953794
+       orga3 |    .494169   .3005692     1.64   0.100    -.0949359    1.083274
+       orga4 |  -.2104809   .2729509    -0.77   0.441    -.7454548     .324493
+cops_atten~d |   .0179429   .0165201     1.09   0.277    -.0144359    .0503217
+        edu1 |   .4374067   .2469277     1.77   0.076    -.0465627    .9213761
+        edu3 |    .433122   .2984452     1.45   0.147    -.1518198    1.018064
+        edu4 |   .1248902   .3759908     0.33   0.740    -.6120382    .8618185
+        edu5 |  -.0598349   .4101313    -0.15   0.884    -.8636776    .7440077
+             |
+income_level |
+ Low-middle  |   .0695701   .2586247     0.27   0.788    -.4373249    .5764651
+Upper-mid~e  |   .4443637   .2897212     1.53   0.125    -.1234794    1.012207
+       High  |   .1228973   .2915914     0.42   0.673    -.4486114     .694406
+             |
+       _cons |  -.8666547    .424219    -2.04   0.041    -1.698109   -.0352008
+------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0457189   .0190025     2.41   0.016     .0084748    .0829631
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$worki
+> ng_ANALYSIS\probit_margins_temp2.gph", replace)
+
+Predictive margins                              Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(temp_above), predict()
+
+1._at        : tech_ms_pca     =   -4.940824
+
+2._at        : tech_ms_pca     =   -3.940824
+
+3._at        : tech_ms_pca     =   -2.940824
+
+4._at        : tech_ms_pca     =   -1.940824
+
+5._at        : tech_ms_pca     =   -.9408236
+
+6._at        : tech_ms_pca     =    .0591764
+
+7._at        : tech_ms_pca     =    1.059176
+
+8._at        : tech_ms_pca     =    2.059176
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   .0567978   .0408534     1.39   0.164    -.0232735     .136869
+          2  |   .0773458   .0423895     1.82   0.068    -.0057362    .1604277
+          3  |   .1031046   .0409649     2.52   0.012     .0228148    .1833944
+          4  |    .134591   .0361565     3.72   0.000     .0637255    .2054564
+          5  |   .1721192   .0288408     5.97   0.000     .1155922    .2286462
+          6  |   .2157335   .0243861     8.85   0.000     .1679377    .2635294
+          7  |   .2651573   .0332846     7.97   0.000     .1999207    .3303938
+          8  |   .3197676   .0541553     5.90   0.000      .213625    .4259101
+------------------------------------------------------------------------------
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\probit_margins_temp2.gph not
+>  found)
+
+. 
+. * Probit, DV: Price deemed appropriate to reach temperature target
+. probit price_below temp_above tech_ms_pca $info_source $orga cops_attended $
+> socioeconomics i.income , vce(robust)
+
+Iteration 0:   log pseudolikelihood = -190.87207  
+Iteration 1:   log pseudolikelihood = -155.03105  
+Iteration 2:   log pseudolikelihood = -154.66925  
+Iteration 3:   log pseudolikelihood =  -154.6684  
+Iteration 4:   log pseudolikelihood =  -154.6684  
+
+Probit regression                               Number of obs     =        277
+                                                Wald chi2(18)     =      58.05
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood =  -154.6684               Pseudo R2         =     0.1897
+
+------------------------------------------------------------------------------
+             |               Robust
+ price_below |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  temp_above |   .0286831   .2076425     0.14   0.890    -.3782888     .435655
+ tech_ms_pca |   .1811325   .0677779     2.67   0.008     .0482903    .3139747
+   info_cc_1 |   .0785976   .2104482     0.37   0.709    -.3338733    .4910685
+   info_cc_2 |  -.2261426   .1887011    -1.20   0.231      -.59599    .1437048
+   info_cc_3 |  -.2477511   .2653915    -0.93   0.351     -.767909    .2724067
+   info_cc_4 |  -.1821977   .2418033    -0.75   0.451    -.6561235     .291728
+   info_cc_5 |  -.2262368   .2832386    -0.80   0.424    -.7813741    .3289006
+       orga2 |   .3128137   .2981391     1.05   0.294    -.2715282    .8971557
+       orga3 |    .204554   .2962365     0.69   0.490    -.3760589    .7851669
+       orga4 |    .264909   .2433012     1.09   0.276    -.2119526    .7417707
+cops_atten~d |   .0484617   .0149473     3.24   0.001     .0191656    .0777578
+        edu1 |   -.317994   .2309408    -1.38   0.169    -.7706297    .1346417
+        edu3 |   -.370095   .2841306    -1.30   0.193    -.9269808    .1867907
+        edu4 |  -.7058683   .3219697    -2.19   0.028    -1.336917   -.0748193
+        edu5 |  -.1999177   .3234513    -0.62   0.537    -.8338706    .4340353
+             |
+income_level |
+ Low-middle  |   .0848646   .2394684     0.35   0.723    -.3844849    .5542141
+Upper-mid~e  |   .4084952   .2882893     1.42   0.156    -.1565414    .9735318
+       High  |  -.9786267   .2965089    -3.30   0.001    -1.559773     -.39748
+             |
+       _cons |   .7944531   .3976906     2.00   0.046     .0149938    1.573912
+------------------------------------------------------------------------------
+
+. margins, dydx(tech_ms_pca)
+
+Average marginal effects                        Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ tech_ms_pca |   .0574945   .0205535     2.80   0.005     .0172105    .0977786
+------------------------------------------------------------------------------
+
+. margins, at(tech_ms_pca = (`tech_ms_min' (1) `tech_ms_max' )) saving("$worki
+> ng_ANALYSIS\probit_margins_price2.gph", replace)
+
+Predictive margins                              Number of obs     =        277
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+
+1._at        : tech_ms_pca     =   -4.940824
+
+2._at        : tech_ms_pca     =   -3.940824
+
+3._at        : tech_ms_pca     =   -2.940824
+
+4._at        : tech_ms_pca     =   -1.940824
+
+5._at        : tech_ms_pca     =   -.9408236
+
+6._at        : tech_ms_pca     =    .0591764
+
+7._at        : tech_ms_pca     =    1.059176
+
+8._at        : tech_ms_pca     =    2.059176
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   .2555807   .0960736     2.66   0.008     .0672799    .4438815
+          2  |   .3079859   .0850667     3.62   0.000     .1412583    .4747136
+          3  |   .3644416   .0699283     5.21   0.000     .2273847    .5014985
+          4  |   .4237865   .0522374     8.11   0.000      .321403      .52617
+          5  |   .4846733   .0353176    13.72   0.000      .415452    .5538945
+          6  |   .5456642   .0273069    19.98   0.000     .4921436    .5991847
+          7  |   .6053355   .0352784    17.16   0.000     .5361912    .6744798
+          8  |   .6623777   .0499833    13.25   0.000     .5644122    .7603432
+------------------------------------------------------------------------------
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\probit_margins_price2.gph no
+> t found)
+
+. 
+. * Marginsplot
+. combomarginsplot "$working_ANALYSIS\probit_margins_temp2.gph" "$working_ANAL
+> YSIS\probit_margins_price2.gph", labels("Temperature rise {&ge} 2°C acceptab
+> le" "Global carbon price < 60 USD suggested")  xtitle("Technological optimis
+> m mindset (PCA)", size($xytitle)) title("{bf:c }", size($head) pos(11) ring(
+> 15))  xla(-4(2)2, labsize($xylab)) yla(, labsize($xylab))  ytitle("Effects o
+> n probability of" "accepting/suggesting", size($xytitle)) recast(line) recas
+> tci(rarea)  file2opts(msize(6pt)) fileci1opts(recast(rarea) lw(none) fcolor(
+> %20)) fileci2opts(recast(rarea) lw(none) fcolor(%20)) legend(rows(2) pos(11)
+>  ring(0) size($legend) region(fcolor(%20))) graphregion(margin(30 30 0 0)) p
+> lotregion(margin(0 0 0 0)) scale(*0.4) fysize(40) 
+
+  Variables that uniquely identify margins: tech_ms_pca _filenumber
+
+. gr_edit legend.DragBy -.05 0
+
+. gr save "$working_ANALYSIS/results/intermediate/margins_temp_price.gph", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/margins_temp_
+> price.gph saved)
+
+. 
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" "$working_ANALYSIS/resul
+> ts/intermediate/margins_temp_price.gph", rows(3) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" "$working_ANALYSIS/resul
+> ts/intermediate/margins_temp_price.gph", rows(3) ysize(7)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. *--------------------------------------------------
+. * Analysis 
+. *-------------------------------------------------
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. /*
+> Main Body:
+> I)  Fig. 1: Descriptives
+>         a) Carbon price and temperature rise
+>         b) Shifting the burden
+> 
+> II) Fig. 2: Inferential
+>         a) Answers towards technological optimism items
+>         b) Technological optimism mindset and temperature & prices suggested
+> 
+> III) In text-statistics not mentioned in the supplementary online material
+>     - "Delegates vastly agree to limit global warming: The majority perceive
+> s a rise above 1.5°C unacceptable (78%), with only few (8%) deeming an incre
+> ase of 2.5°C or more acceptable."
+>     - "The median global carbon price recommended in our sample is 50 USD [.
+> ..]"
+>     - "Roughly half of all delegates interviewed stated rather unambitious c
+> arbon prices below 60 USD (55%). Only 37% (19% and 13%, respectively) deemed
+>  a price of at least 82 USD (185 USD, 281 USD) as appropriate"
+>     - "This variance in global price suggested is highest for the three low 
+> temperature options (0°C, 0.5°C and 1°C), with price suggestions ranging fro
+> m 0 to 2,000 USD (Levene’s test F(1, 275)=21.7, p<0.001)."
+>     - "Of the 100 delegates [suggesting prices between 0°C und 1°C] in favor
+>  of these ambitious temperature targets, 62% indicated global carbon prices 
+> below 60 USD as appropriate to stay below the temperature target."
+>     - "In addition, we find that participants who claim to be influential in
+>  their delegation score higher on the technological optimism mindset (r=.23,
+>  p<.001)."
+> */
+. 
+. 
+. use "$working_ANALYSIS\data\delegates_analysis.dta", clear
+
+. 
+. 
+. *---------------------------------------
+. *   I) FIGURE 1 
+. *------------------------------
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. global fysize    22 
+
+. global textsize  14 pt
+
+. 
+. 
+. 
+. // Fig 1a: Distribution of answers towards technological optimism items
+. ** Catplot for each item
+. global margins 145 0 1 3 // set margins for all
+
+. global pos_text1 -15 50
+
+. global pos_text2  50 -4
+
+. 
+. mylabels 0(25)100, myscale(@) local(pctlabel) suffix("%") // set label for a
+> xis
+0 "0%" 25 "25%" 50 "50%" 75 "75%" 100 "100%"
+
+. catplot tech_ms_1 , text($pos_text1 "Future generations will be richer and b
+> etter equipped to deal" "with adverse impacts of climate change." $pos_text2
+>  "{it:.46}", size($textsize) place(w) just(right)) stack percent asyvar yla(
+> `pctlabel', nogrid)  title("") bargap(0) blabel(bar, size(medium) format(%9.
+> 0f) pos(center)) l1title("")  b1title("") legend(rows(1) pos(6) ring(1) size
+> (vsmall)) plotregion(margin(zero)) graphregion(margin($margins)) yscale(off)
+>  fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt1.gph 
+> saved)
+
+. catplot tech_ms_2 , text($pos_text1  "Technological innovation e.g., solar g
+> eoengineering offers" "a suitable solution to respond in case of a future cl
+> imate emergency." $pos_text2 "{it:.51}", size($textsize) place(w) just(right
+> )) stack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(
+> bar, size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend
+> (rows(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(m
+> argin($margins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt2.gph 
+> saved)
+
+. catplot tech_ms_3 , text($pos_text1  "The present costs and future benefits 
+> to society must be weighed" "against each other, while deciding about emissi
+> on reduction policies." $pos_text2 "{it:.44}", size($textsize) place(w) just
+> (right)) stack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) b
+> label(bar, size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") 
+> legend(rows(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphre
+> gion(margin($margins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt3", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt3.gph 
+> saved)
+
+. 
+. /* Delete!
+> catplot tech_ms_4 , text($pos_text1 "The usage of conventional energy source
+> s is inevitable as global" "energy demand is too high to be covered by renew
+> able energy." $pos_text2 "{it:.43}", size($textsize) place(w) just(right)) s
+> tack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(bar,
+>  size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend(row
+> s(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(margi
+> n($margins)) yscale(off) fysize($fysize)
+> graph save "$working_ANALYSIS\results\intermediate\fut_opt4", replace
+> */
+. 
+. catplot tech_ms_5 , text($pos_text1 "Technological innovations for climate c
+> hange emerge more likely in a" "free-market economy without much interferenc
+> e from the Government." $pos_text2 "{it:.38}", size($textsize) place(w) just
+> (right)) stack percent asyvar yla(`pctlabel', nogrid labsize(relative3)) yti
+> tle("percent", size(relative3)) title("") bargap(0) blabel(bar, size(medium)
+>  format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(3) pos(6) r
+> ing(1) size(7.5 pt) symxsize(2.5)) plotregion(margin(zero)) graphregion(marg
+> in($margins)) fysize(50)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt5", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt5.gph 
+> saved)
+
+. catplot tech_ms_6 , text($pos_text1 "Transformation towards a sustainable so
+> ciety is possible by making" "productions more resourcesaving and without ha
+> rming the economy." $pos_text2 "{it:.43}" 180 2 "{it:Loading}" "{it:(PCA)}",
+>  size($textsize) place(w) just(right)) stack percent asyvar yla(`pctlabel', 
+> nogrid)  title("") bargap(0) blabel(bar, size(medium) format(%9.0f) pos(cent
+> er)) l1title("")  b1title("") legend(rows(3) pos(6) ring(1) size(7.5 pt) row
+> gap(minuscule) symxsize(2.5)) plotregion(margin(zero)) graphregion(margin($m
+> argins)) yscale(off) fysize($fysize)
+
+. graph save "$working_ANALYSIS\results\intermediate\fut_opt6", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\fut_opt6.gph 
+> saved)
+
+. 
+. * Combine the single plots
+. grc1leg "$working_ANALYSIS\results\intermediate\fut_opt6" "$working_ANALYSIS
+> \results\intermediate\fut_opt3" "$working_ANALYSIS\results\intermediate\fut_
+> opt2" "$working_ANALYSIS\results\intermediate\fut_opt1" "$working_ANALYSIS\r
+> esults\intermediate\fut_opt5" , cols(1) legendfrom("$working_ANALYSIS\result
+> s\intermediate\fut_opt6") title("{bf:a }", size(11 pt) pos(11) ring(15)) gra
+> phregion(margin(2 3 -3 4)) plotregion(margin(0 0 0 5)) 
+
+. gr_edit .legend.plotregion1.DragBy 1 35
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle horizontal(
+> center) editcopy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph2.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph3.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph4.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. gr_edit .plotregion1.graph5.plotregion1.textbox2.style.editstyle size(13) ed
+> itcopy
+
+. graph save "$working_ANALYSIS\results\intermediate\tech_opt_answers", replac
+> e
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\tech_opt_answ
+> ers.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1a_tech_opt_answers.tif
+> ", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1a_tech
+> _opt_answers.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1a_tech_opt_a
+> nswers.tif written in TIFF format)
+
+. 
+. 
+. 
+. 
+. // Fig 1b: Global carbon price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) uniqu
+> e
+
+. egen temp_rise_cropped_freq = count(carbon_price_cap), by(temp_rise_cropped)
+
+. gen  temp_rise_cropped_jitter2 = temp_rise_cropped + (carbon_price_rank *.00
+> 6) - (temp_rise_cropped_freq / 2 * 0.006)
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medi
+> um) msymbol(o))              ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                 
+>                              ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1b_price_temprise.tif",
+>  replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1b_pric
+> e_temprise.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1b_price_temp
+> rise.tif written in TIFF format)
+
+. 
+. 
+. 
+. 
+. // Fig. 1c. Carbon prices home (now/future)
+. * Generate variable defining position of observations on x-axis
+. drop price_rank_* h_*
+variable price_rank_* not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country (USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+variable h_now_jitter not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. // Fig. 1c. Carbon prices home (now/future)
+. * Generate variable defining position of observations on x-axis
+. foreach var in now future {
+  2. egen price_rank_h_`var' = rank(price_home_`var'_cap), unique
+  3. }
+
+. 
+. gen h_now_jitter = .
+(277 missing values generated)
+
+. replace h_now_jitter = .5 + (price_rank_h_now *.001)
+(277 real changes made)
+
+. gen h_future_jitter = .
+(277 missing values generated)
+
+. replace h_future_jitter = 1 + (price_rank_h_future * .001)
+(277 real changes made)
+
+. gen h_now_stat = .6
+
+. gen h_future_stat = 1.1
+
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country (USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sust
+> Use\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_glob
+> al_price.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle(`"Carbon price in home country" "(USD/tCO2)"', size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle(`""Carbon price in home country" "(USD/tCO2)""', size($xytitle pt)) /
+> //
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle(`" "Carbon price in home country" "(USD/tCO2)" "', size($xytitle pt))
+>  ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. // Fig 1b: Global carbon price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) uniqu
+> e
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medi
+> um) msymbol(o))              ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price" "(USD/tCO2)", size($xytitle pt))               
+>                                ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1b_price_temprise.tif",
+>  replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1b_price_temp
+> rise.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(40)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(30)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+. 
+. 
+end of do-file
+
+. twoway (scatter info_cc_4 continent), yscale(range(0 1))
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) yscale(0) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0 1.8)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+option 0 not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) yscale(0) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.1 1.8)) //
+> /
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+option 0 not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) yscale(0) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+option 0 not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) yscale(0) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+option 0 not allowed
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0 1.8)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. sum h_now_jitter
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+h_now_jitter |        277        .639    .0801072       .501       .777
+
+. sum h_now_jitter h_future_jitter
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+h_now_jitter |        277        .639    .0801072       .501       .777
+h_future_j~r |        277       1.139    .0801072      1.001      1.277
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.45 1.3)) /
+> //
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. sum temp_rise_cropped_jitter2
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+temp_rise_~2 |        277    3.649209     1.31687        .94      6.063
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Fig 1b: Global carbon price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) uniqu
+> e
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medi
+> um) msymbol(o))              ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price" "(USD/tCO2)", size($xytitle pt))               
+>                                ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> xscale(range(0.9 6.1 )) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1b_price_temprise.tif",
+>  replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1b_price_temp
+> rise.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Fig 1b: Global carbon price and temperature rise 
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped) uniqu
+> e
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medi
+> um) msymbol(o))              ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))           
+>                        ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))           
+>                        ///
+> , title("{bf:b }", pos(11) span size($head pt))                             
+>                              ///
+> ytitle("Global carbon price" "(USD/tCO2)", size($xytitle pt))               
+>                                ///
+> ylabel(, labsize($xylab pt))                                                
+>                              ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(
+> 0 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n
+> =`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge
+> }2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                                   
+>              ///
+> xscale(range(0.85 6.2 )) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\price_tempris
+> e.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1b_price_temprise.tif",
+>  replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1b_price_temp
+> rise.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.47 1.3)) /
+> //
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.47 1.3)) /
+> //
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(10 10 0 0)) plotregion(margin(0 0
+>  0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.47 1.3)) /
+> //
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(13 7 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future" , labsize($xylab pt)) xscale(range(0.47 1.3)) /
+> //
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(7 13 5 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 `"Now" "(Today-2030)"' 1.1 `"Future" "2080-2100"', labsize($xylab 
+> pt)) xscale(range(0.47 1.3)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(15 5 5 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 `""Now" "(Today-2030)""' 1.1 `"Future" "2080-2100"', labsize($xyla
+> b pt)) xscale(range(0.47 1.3)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(15 5 5 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 `""Now" "(Today-2030)""' 1.1 `""Future" "2080-2100""', labsize(2.5
+>  pt)) xscale(range(0.47 1.3)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(15 5 5 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol
+> (o)) ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle)) ///
+> (scatter median_price_home_now h_now_stat , msymbol(square)) ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) m
+> symbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle)) ///
+> (scatter median_price_home_future h_future_stat , msymbol(square)) ///
+> , title("{bf:c }", pos(11) span size($head pt)) ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt)) ///
+> ylabel(, labsize($xylab pt)) ///
+> xtitle("Period for which price was determined", size($xytitle pt)  margin(0 
+> 0 0 4)) ///
+> xlabel(.6 `""Now" "(Today-2030)""' 1.1 `""Future" "(2080-2100)""', labsize(2
+> .5 pt)) xscale(range(0.47 1.3)) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) p
+> os(6) ring(1) region(fcolor(%40))) ///
+> fysize(40) scale(*1.25) graphregion(margin(15 5 0 0)) plotregion(margin(0 0 
+> 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\global_price.
+> gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\results\intermediate\1c_global_pri
+> ce.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise" "$work
+> ing_ANALYSIS/results/intermediate/global_price.gph", rows(1) fysize(35)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/intermediate/figure1_bc.gp
+> h saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answers" "$wo
+> rking_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) ysize(5)
+
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.gph saved
+> )
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis/results/figures/Figure_2.tif writt
+> en in TIFF format)
+
+. 
+. 
+end of do-file
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.51892      1.53219             0.4198       0.4198
+           Comp2 |      .986735      .208226             0.1645       0.5843
+           Comp3 |      .778509       .14601             0.1298       0.7140
+           Comp4 |      .632499     .0669656             0.1054       0.8194
+           Comp5 |      .565533     .0477336             0.0943       0.9137
+           Comp6 |        .5178            .             0.0863       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 | Unexplained 
+    -------------+------------------------------------------------------------+-------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 |           0 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 |           0 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 |           0 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 |           0 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 |           0 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 |           0 
+    ----------------------------------------------------------------------------------------
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.17475      1.22935             0.4350       0.4350
+           Comp2 |      .945404      .168293             0.1891       0.6240
+           Comp3 |      .777111       .21128             0.1554       0.7795
+           Comp4 |      .565831     .0289289             0.1132       0.8926
+           Comp5 |      .536902            .             0.1074       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ------------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 | Unexplained 
+    -------------+--------------------------------------------------+-------------
+       tech_ms_1 |   0.4607    0.4038   -0.4509    0.0014    0.6491 |           0 
+       tech_ms_2 |   0.5108    0.0330   -0.3453   -0.4817   -0.6219 |           0 
+       tech_ms_3 |   0.4410   -0.5503   -0.1772    0.6799   -0.0953 |           0 
+       tech_ms_5 |   0.3815    0.5906    0.5725    0.3459   -0.2412 |           0 
+       tech_ms_6 |   0.4322   -0.4293    0.5641   -0.4313    0.3531 |           0 
+    ------------------------------------------------------------------------------
+
+. sum price_home_now price_home_future
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+price_home~w |        277    107.0289    293.6312          0       2000
+price_home~e |        277     201.935     406.729          0       2000
+
+. sum price_home_now price_home_future, d
+
+     Home: Appropriate price for carbon emissions until
+                2030 to keep temeprature belo
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            2              0       Obs                 277
+25%           10              0       Sum of Wgt.         277
+
+50%           25                      Mean           107.0289
+                        Largest       Std. Dev.      293.6312
+75%           77           2000
+90%          175           2000       Variance       86219.26
+95%          500           2000       Skewness       4.916304
+99%         2000           2000       Kurtosis       28.83314
+
+      Home: Appropriate price for carbon emissions from
+               2080 to 2100 to keep temepratu
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            1              0
+10%            5              0       Obs                 277
+25%           15              0       Sum of Wgt.         277
+
+50%           50                      Mean            201.935
+                        Largest       Std. Dev.       406.729
+75%          150           2000
+90%          500           2000       Variance       165428.5
+95%         1300           2000       Skewness       3.116028
+99%         2000           2000       Kurtosis       12.40012
+
+. tab1
+varlist required
+r(100);
+
+. help swift_red
+
+. help schemepack
+
+. set scheme swift_red
+
+. TLDR
+command TLDR is unrecognized
+r(199);
+
+. tldr
+command tldr is unrecognized
+r(199);
+
+. colorpalate
+command colorpalate is unrecognized
+r(199);
+
+. colorpalatte
+command colorpalatte is unrecognized
+r(199);
+
+. twoway (scatter info_cc_4 continent), yscale(range(0 1)) yscale(alt)
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. // Fig. 1c. National carbon prices home (now/future)
+. * Generate variable defining position of observations on x-axis
+. foreach var in now future {
+  2. egen price_rank_h_`var' = rank(price_home_`var'_cap), unique
+  3. }
+variable price_rank_h_now already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(%30) msize(medium) msymbol(o))  ///
+> (scatter mean_price_home_now h_now_stat , msymbol(triangle))                      ///
+> (scatter median_price_home_now h_now_stat , msymbol(square))                      ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(%30) msize(medium) msymbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , msymbol(triangle))                ///
+> (scatter median_price_home_future h_future_stat , msymbol(square))                ///
+> , title("{bf:c }", pos(11) span size($head pt))                                   ///
+> ytitle("Carbon price in home country" "(USD/tCO2)", size($xytitle pt))            ///
+> ylabel(, labsize($xylab pt)) yscale(alt) ///
+> xtitle("Period for which price was determined", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 `""Now" "(Today-2030)""' 1.1 `""Future" "(2080-2100)""', labsize(2.5 pt)) xscale(range(0.47 1.3))
+>  ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) pos(6) ring(1) region(fcolor(%40
+> ))) ///
+> fysize(40) scale(*1.25) graphregion(margin(15 5 0 0)) plotregion(margin(0 0 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\global_price", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUS
+> T\analysis\results\intermediate\global_price.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1c_global_price.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUS
+> T\analysis\results\intermediate\1c_global_price.tif written in TIFF format)
+
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msize(medium) msymbol(o)) ///
+> (scatter mean_carbon_price temp_rise_cropped , msymbol(triangle))                           ///
+> (scatter median_carbon_price temp_rise_cropped , msymbol(square))                           ///
+> , title("{bf:b }", pos(11) span size($head pt))                                             ///
+> ytitle("Global carbon price" "(USD/tCO2)", size($xytitle pt))                               ///
+> ylabel(, labsize($xylab pt))                                                                ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 0 0 4))       ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`n_3')" "' 4 `" "1.5°C" "(n=`n
+> _4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , labsize(2.5 pt))                     
+>                     ///
+> xscale(range(0.85 6.2 )) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(1) pos(6) ring(1) region(fcolor(%40
+> ))) ///
+> fysize(40) scale(*1.25) graphregion(margin(0 10 0 0)) plotregion(margin(0 0 0 0))
+
+. 
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUS
+> T\analysis\results\intermediate\price_temprise.gph saved)
+
+. graph export "$working_ANALYSIS\results\intermediate\1b_price_temprise.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUS
+> T\analysis\results\intermediate\1b_price_temprise.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD4dcc_000000.tmp"
+
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. * Initialize log and record system parameters
+. clear
+
+. set more off
+
+. cap mkdir "$working_ANALYSIS/scripts/logs"
+
+. cap log close

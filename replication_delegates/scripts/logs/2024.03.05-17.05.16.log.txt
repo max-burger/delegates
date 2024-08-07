@@ -1,0 +1,406 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustU
+> se\Donia_Delegates\8_Submission\NSUST\analysis/scripts/logs/2024.03.05-17.05.1
+> 6.log.txt
+  log type:  text
+ opened on:   5 Mar 2024, 17:05:16
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time:  5 Mar 2024 17:05:16
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red // select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox 
+> //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, th
+> at is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces tra
+> nsparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "25
+> 5 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "22
+> 0 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "22
+> 0 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#
+> arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_labe
+> l tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,835 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,158       26.61       26.61
+Global South |      5,953       73.39      100.00
+-------------+-----------------------------------
+       Total |      8,111      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(10pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,263       64.90       64.90
+          1 |      2,847       35.10      100.00
+------------+-----------------------------------
+      Total |      8,110      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(10pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,404       66.63       66.63
+       Other |      2,707       33.37      100.00
+-------------+-----------------------------------
+       Total |      8,111      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(10pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. gr export "$working_ANALYSIS\results\figures\Figure S1.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\figures\Figure S1.tif written 
+> in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. 
+. // Test for stat. diffs
+. ttest global_south, by(sample)
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+       1 |     276    .7355072    .0265971    .4418639    .6831475     .787867
+       2 |   7,835    .7338864    .0049929    .4419526    .7240989    .7436739
+---------+--------------------------------------------------------------------
+combined |   8,111    .7339416    .0049069    .4419224    .7243227    .7435604
+---------+--------------------------------------------------------------------
+    diff |            .0016208    .0270667               -.0514369    .0546786
+------------------------------------------------------------------------------
+    diff = mean(1) - mean(2)                                      t =   0.0599
+Ho: diff = 0                                     degrees of freedom =     8109
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.5239         Pr(|T| > |t|) = 0.9523          Pr(T > t) = 0.4761
+
+. ttest female, by(sample)
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+       1 |     276    .3224638    .0281864    .4682685    .2669751    .3779524
+       2 |   7,834    .3520551    .0053965    .4776415    .3414766    .3626337
+---------+--------------------------------------------------------------------
+combined |   8,110    .3510481    .0053004    .4773274     .340658    .3614382
+---------+--------------------------------------------------------------------
+    diff |           -.0295914    .0292334               -.0868964    .0277136
+------------------------------------------------------------------------------
+    diff = mean(1) - mean(2)                                      t =  -1.0122
+Ho: diff = 0                                     degrees of freedom =     8108
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.1557         Pr(|T| > |t|) = 0.3115          Pr(T > t) = 0.8443
+
+. ttest non_gov, by(sample)
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+       1 |     276    .3550725    .0288568    .4794045    .2982642    .4118807
+       2 |   7,835     .332993    .0053246    .4713141    .3225552    .3434307
+---------+--------------------------------------------------------------------
+combined |   8,111    .3337443    .0052362    .4715787      .32348    .3440086
+---------+--------------------------------------------------------------------
+    diff |            .0220795    .0288821               -.0345368    .0786958
+------------------------------------------------------------------------------
+    diff = mean(1) - mean(2)                                      t =   0.7645
+Ho: diff = 0                                     degrees of freedom =     8109
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.7777         Pr(|T| > |t|) = 0.4446          Pr(T > t) = 0.2223
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. iebaltab tech_ms_red female age edu1 edu2 edu3 edu4 edu5 low_income lower_midd
+> le_income upper_middle_income high_income, grpvar(treat_tech) savexlsx("$worki
+> ng_ANALYSIS/results/tables/balance_treat") replace
+variable tech_ms_red not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. iebaltab tech_ms_pca female age edu1 edu2 edu3 edu4 edu5 low_income lower_midd
+> le_income upper_middle_income high_income, grpvar(treat_tech) savexlsx("$worki
+> ng_ANALYSIS/results/tables/balance_treat") replace
+
+    Balance table saved in Excel format to: C:\Users\Max
+        Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+        SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/bal
+        > ance_treat.xlsx
+
+. 
+end of do-file
+
+. tab treat_tech
+
+  Technological |
+  optimism made |
+        salient |
+   (compared to |
+  env. caution) |      Freq.     Percent        Cum.
+----------------+-----------------------------------
+   Env. caution |        127       46.01       46.01
+Techn. optimism |        149       53.99      100.00
+----------------+-----------------------------------
+          Total |        276      100.00
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. gen treat_tech_rev = (treat_tech -1) * (-1)
+(7,835 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. 
+. // S4.8: Increasing saliency of mindset
+. ** Table S14: Balance table
+. gen treat_tech_rev = (treat_tech -1) * (-1)
+variable treat_tech_rev already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD8a80_000000.tmp"
+
+. iebaltab tech_ms_pca female age edu1 edu2 edu3 edu4 edu5 low_income lower_midd
+> le_income upper_middle_income high_income, grpvar(treat_tech_rev) savexlsx("$w
+> orking_ANALYSIS/results/tables/balance_treat") replace
+
+    Balance table saved in Excel format to: C:\Users\Max
+        Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+        SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/bal
+        > ance_treat.xlsx
+
+. 
+end of do-file
+
+. tba treat_tech
+command tba is unrecognized
+r(199);
+
+. tabtreat_tech
+command tabtreat_tech is unrecognized
+r(199);
+
+. tab treat_tech
+
+  Technological |
+  optimism made |
+        salient |
+   (compared to |
+  env. caution) |      Freq.     Percent        Cum.
+----------------+-----------------------------------
+   Env. caution |        127       46.01       46.01
+Techn. optimism |        149       53.99      100.00
+----------------+-----------------------------------
+          Total |        276      100.00
+
+. help iebaltab
+
+. ttest tech_opt_s, by(treat_tech)
+variable tech_opt_s not found
+r(111);
+
+. ttest tech_opt_pca, by(treat_tech)
+variable tech_opt_pca not found
+r(111);
+
+. ttest tech_ms_pca, by(treat_tech)
+
+Two-sample t test with equal variances
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+Env. cau |     127   -.0153432    .1377212    1.552039   -.2878894     .257203
+Techn. o |     149     .031056    .1145521    1.398287    -.195313     .257425
+---------+--------------------------------------------------------------------
+combined |     276    .0097056    .0883929    1.468493   -.1643071    .1837184
+---------+--------------------------------------------------------------------
+    diff |           -.0463992    .1776514               -.3961343    .3033359
+------------------------------------------------------------------------------
+    diff = mean(Env. cau) - mean(Techn. o)                        t =  -0.2612
+Ho: diff = 0                                     degrees of freedom =      274
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.3971         Pr(|T| > |t|) = 0.7941          Pr(T > t) = 0.6029
+
+. sum price_below
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ price_below |        276    .5471014    .4986807          0          1
+
+. exit, clear

@@ -1,0 +1,2303 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustU
+> se\Donia_Delegates\8_Submission\analysis/scripts/logs/2023.06.26-14.37.10.log.
+> txt
+  log type:  text
+ opened on:  26 Jun 2023, 14:37:10
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time: 26 Jun 2023 14:37:10
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. * All required Stata packages are available in the /libraries/stata folder
+. tokenize `"$S_ADO"', parse(";")
+
+. while `"`1'"' != "" {
+  2.   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+  3.   macro shift
+  4. }
+
+. adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+  [1]              "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Pape
+> r SustUse\Donia_Delegates\8_Submission\analysis/scripts/libraries/stata"
+  [2]  (BASE)      "C:\Program Files\Stata 16\ado\base/"
+
+. mata: mata mlib index
+.mlib libraries to be searched are now
+    lmatabase;lmataado;lmataerm;lmatafc;lmatagsem;lmatalasso;lmatamcmc;lmatameta
+> ;lmatami;lmatamixlog;lmatanumlib;lmataopt;lmatapath;lmatapostest;lmatapss;lmat
+> asem;lmatasp;lmatasvy;lmatatab;lcolrspace
+
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/processed"
+
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red //select one scheme as reference scheme to work with
+
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox 
+> //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, th
+> at is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces tra
+> nsparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "25
+> 5 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "22
+> 0 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "22
+> 0 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#
+> arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_labe
+> l tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+. 
+. 
+. *--------------------------------------------------
+. * Run processing and analysis scripts
+. *--------------------------------------------------
+. do "$working_ANALYSIS\scripts\01 - clean.do"
+
+. *--------------------------------------------------
+. * Generate.do
+. * START: 2023-01-30
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. * Max (G-Drive)
+. global stata "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delega
+> tes\4_Carbon_Prices\STATA"
+
+. global workpath   "$stata\DO-FILES"
+
+. global datapath   "$stata\DTA-FILES"
+
+. global output     "$stata\OUTPUT"
+
+. global xls        "$stata\XLS-FILES"
+
+. 
+. 
+. use "$datapath\delegates_final.dta", clear
+
+. 
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. 
+. 
+. *---------------------
+. * I) Preparing Dataset: Generating
+. *---------------------
+. 
+. // Data inconsistencies
+. * Some participants (n= 4) stated that a temp rise of 0 is acceptable which ca
+> n be reached by a carbon price of 0; either they did not understand/pay attent
+> ion or do not deem carbon tax a useful tool; we could think of excluding these
+>  participants
+. gen temp_price_0 = 0
+
+. replace temp_price_0 = 1 if temp_rise == 0 & carbon_price == 0
+(4 real changes made)
+
+. lab var temp_price_0 "Stated that a 0 degree rise could be achieved by carbon 
+> price = 0"
+
+. 
+. 
+. 
+. 
+. * Education
+. tab edu, generate(edu)
+
+     Field in which |
+  highes degree was |
+           obtained |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+    Natural Science |        126       45.49       45.49
+     Social Science |         55       19.86       65.34
+Mix: Social&Natural |         47       16.97       82.31
+                Law |         26        9.39       91.70
+              Other |         23        8.30      100.00
+--------------------+-----------------------------------
+              Total |        277      100.00
+
+. 
+. ** Organizations working for
+. tab organization, generate(organization)
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. *---- Organization currently working for
+. gen orga = .
+(277 missing values generated)
+
+. replace orga = 1 if organization == 1 | organization == 2 // International (11
+> ) & national (168) gov orga 
+(179 real changes made)
+
+. replace orga = 2 if organization == 3 //  University/Research Institute
+(33 real changes made)
+
+. replace orga = 3 if organization == 5 //  Environmental NGO
+(25 real changes made)
+
+. replace orga = 4 if organization == 4 |  organization == 6 |  organization == 
+> 7 //  Private Company (n=8), Non-environmental NGO (n=6), Other (n=26)
+(40 real changes made)
+
+. tab organization
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. lab define orga_lab 1 "Governmental Organization" 2 "University/Research Insti
+> tute" 3 "Environmental NGO" 4 "Other"
+
+. lab val orga orga_lab
+
+. tab orga, gen(orga)
+
+                         orga |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+    Governmental Organization |        179       64.62       64.62
+University/Research Institute |         33       11.91       76.53
+            Environmental NGO |         25        9.03       85.56
+                        Other |         40       14.44      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. 
+. ** Logarithmic form of suggested carbon prices
+. gen ln_carbon_price = ln(carbon_price + 1)
+
+. label var ln_carbon_price "Natural logarithm of suggested carbon_price"
+
+. 
+. ** Logarithms of prices suggested prices for home, OECD, LDC / now, future
+. foreach var in price_home_now price_oecd_now price_ldc_now price_home_future p
+> rice_oecd_future price_ldc_future {
+  2. gen ln_`var' = log(`var' + 1)
+  3. }
+
+. lab var ln_price_home_now "Ln of Price Home Now"
+
+. lab var ln_price_oecd_now "Ln of Price OECD Now"
+
+. lab var ln_price_ldc_now "Ln of Price LDCs Now"
+
+. lab var ln_price_home_future "Ln of Price Home Future"
+
+. lab var ln_price_oecd_future "Ln of Price OECD Future"
+
+. lab var ln_price_ldc_future "Ln of Price LDCs Future"
+
+. 
+. ** Price suggested below 60 USD
+. gen price_below = .
+(277 missing values generated)
+
+. replace price_below = 0 if carbon_price >= 60 
+(126 real changes made)
+
+. replace price_below = 1 if carbon_price < 60 
+(151 real changes made)
+
+. lab var price_below "Price suggested < USD60"
+
+. 
+. ** Temperature above 1.5 degrees
+. gen temp_above = .
+(277 missing values generated)
+
+. replace temp_above = 0 if temp_rise <= 1.5
+(216 real changes made)
+
+. replace temp_above = 1 if temp_rise > 1.5
+(61 real changes made)
+
+. 
+. 
+. ** Shifting
+. // Other countries
+. * To OECD
+. gen shift_to_oecd = price_oecd_now - price_home_now 
+
+. lab var shift_to_oecd "Shift to OECD Countries (if > 0 shift to others)" 
+
+. * To LDCs
+. gen shift_to_ldc = price_ldc_now - price_home_now 
+
+. lab var shift_to_ldc "Shift to LD Countries (if > 0 shift to others)" 
+
+. 
+. * From LDC to OECD
+. gen shift_ldc_oecd = price_oecd_now - price_ldc_now 
+
+. lab var shift_ldc_oecd "Shift from LDC to OECD (if > 0 OECD-countries should p
+> ay higher price)"
+
+. 
+. // Shifting responsibilties to the future
+. * Home Country
+. gen shift_future_home = price_home_future - price_home_now 
+
+. lab var shift_future_home "Shift to future: Home (if>0 shift to future)" 
+
+. * OECD Countries
+. gen shift_future_oecd = price_oecd_future - price_oecd_now 
+
+. lab var shift_future_oecd "Shift to future: OECD (if>0 shift to future)"
+
+. * Least Developed Countries
+. gen shift_future_ldc = price_ldc_future  - price_ldc_now
+
+. lab var shift_future_ldc "Shift to future: Home (if>0 shift to future)"
+
+. 
+. 
+. /* 
+> How to treat the shifting variables [large outliers...]
+> 
+>         A) Log. of shifting to other countries / future
+> To reduce outliers, it could be helpful to use logarithms. However, the differ
+> ence is negative in some cases. Therefore, taking the logarithm after taking t
+> he difference is not straightforward. Calculating the logarithm beforehand and
+>  taking differences between logaritzmized values does not work! (I tried :) ->
+>  values do not fit when plotted against diff of unlogarithmized values)
+> Solutions namend:
+> I)  Take log of absolute values and add sign after
+> II) Add minimum value [arbitrary number] => For robustness could also try this
+> !
+> 
+> https://www.statalist.org/forums/forum/general-stata-discussion/general/625369
+> -log-transformation-of-negative-values
+> https://www.researchgate.net/post/How-can-I-log-transform-a-series-with-both-p
+> ositive-and-negative-values
+> 
+>         B) Proportional to own 
+> Another possibility would be to use shares: In comparison to the price suggest
+> ed to be payed by own country, how much smaller/bigger is the price suggested 
+> to be payed by others [this could get rid of huge numbers if they are given pr
+> obortionally]:
+>         Share: price home / price others
+>         Problem: how to deal with 0s in denominator when nominator not 0 ? (if
+>  both 0 proportion = 1)
+> 
+> 
+>         C) Binaries
+> Shifting to other countries / to future yes/no
+> 
+> */
+. 
+. *A) LOGs
+. foreach var in shift_to_oecd shift_to_ldc shift_ldc_oecd shift_future_home shi
+> ft_future_oecd shift_future_ldc {
+  2.     gen ln_`var' = .
+  3.         replace ln_`var' = ln(`var' + 1) if `var' >= 0
+  4.         replace ln_`var' = ln((`var' - 1) * (-1)) * (-1) if `var' < 0
+  5. }
+(277 missing values generated)
+(227 real changes made)
+(50 real changes made)
+(277 missing values generated)
+(157 real changes made)
+(120 real changes made)
+(277 missing values generated)
+(225 real changes made)
+(52 real changes made)
+(277 missing values generated)
+(252 real changes made)
+(25 real changes made)
+(277 missing values generated)
+(243 real changes made)
+(34 real changes made)
+(277 missing values generated)
+(253 real changes made)
+(24 real changes made)
+
+. lab var ln_shift_to_oecd "Shift to OECD countries"
+
+. lab var ln_shift_to_ldc "Shift to least developed countries"
+
+. lab var ln_shift_ldc_oecd "OECD pay more than LDC"
+
+. lab var ln_shift_future_home  "Shift to future home country"
+
+. lab var ln_shift_future_oecd "Shift to future in OECD countries"
+
+. lab var ln_shift_future_ldc "Shift to future in least developed countries"
+
+. 
+. *B) Proportional
+. gen prop_shift_oecd = price_oecd_now / price_home_now
+(19 missing values generated)
+
+. replace prop_shift_oecd = 1 if price_home_now == 0 & price_oecd_now == 0
+(6 real changes made)
+
+. lab var prop_shift_oecd "Price OECD countries should pay in comparison to paym
+> ent in home"
+
+. 
+. gen prop_shift_ldc = price_ldc_now / price_home_now 
+(19 missing values generated)
+
+. replace prop_shift_ldc = 1 if price_home_now == 0 & price_ldc_now == 0
+(14 real changes made)
+
+. lab var prop_shift_ldc "Price LD countries should pay in comparison to payment
+>  in home"
+
+. 
+. gen prop_shift_ldc_oecd = price_oecd_now / price_ldc_now
+(29 missing values generated)
+
+. replace prop_shift_ldc = 1 if price_oecd_now == 0 & price_ldc_now == 0
+(0 real changes made)
+
+. lab var prop_shift_ldc "Price OECD countries should pay in comparison to LDCs"
+
+. 
+. gen prop_shift_future_home = price_home_future / price_home_now 
+(19 missing values generated)
+
+. replace prop_shift_future_home = 1 if price_home_now == 0 & price_home_future 
+> == 0
+(10 real changes made)
+
+. lab var prop_shift_future_home "Future price suggested for home in comparison 
+> to now"
+
+. 
+. *C) Binary
+. gen d_shift_oecd = .
+(277 missing values generated)
+
+. replace d_shift_oecd = 1 if shift_to_oecd > 0
+(146 real changes made)
+
+. replace d_shift_oecd = 0 if shift_to_oecd <= 0
+(131 real changes made)
+
+. lab var d_shift_oecd "Dummy: Shift to OECD countries"
+
+. 
+. gen d_shift_ldc= .
+(277 missing values generated)
+
+. replace d_shift_ldc = 1 if shift_to_ldc > 0
+(45 real changes made)
+
+. replace d_shift_ldc = 0 if shift_to_ldc <= 0
+(232 real changes made)
+
+. lab var d_shift_ldc "Dummy: Shift to LDC countries"
+
+. 
+. gen d_shift_ldc_oecd= .
+(277 missing values generated)
+
+. replace d_shift_ldc_oecd = 1 if shift_ldc_oecd > 0
+(187 real changes made)
+
+. replace d_shift_ldc_oecd = 0 if shift_ldc_oecd <= 0
+(90 real changes made)
+
+. lab var d_shift_ldc_oecd "Dummy: Shift from OECD to LDCs"
+
+. 
+. gen d_shift_future_home = .
+(277 missing values generated)
+
+. replace d_shift_future_home = 1 if shift_future_home > 0
+(219 real changes made)
+
+. replace d_shift_future_home = 0 if shift_future_home <= 0
+(58 real changes made)
+
+. lab var d_shift_future_home "Dummy: Shift to future in home country"
+
+. 
+. 
+. * ) Ln before difference
+. gen shift_ln_home_oecd =  ln_price_home_now - ln_price_oecd_now 
+
+. lab var shift_ln_home_oecd "Home to OECD: Difference of lograithmized values"
+
+. 
+. gen shift_ln_home_ldc = ln_price_home_now - ln_price_ldc_now 
+
+. lab var shift_ln_home_ldc "Home to LDCs: Difference of lograithmized values"
+
+. 
+. gen shift_ln_ldc_oecd = ln_price_ldc_now - ln_price_oecd_now 
+
+. lab var shift_ln_ldc_oecd "LDCsto OECD: Difference of lograithmized values"
+
+. 
+. gen shift_ln_future_home = ln_price_home_now - ln_price_home_future
+
+. lab var shift_ln_future_home "Present to future (home): Difference of lograith
+> mized values"
+
+. 
+. 
+. 
+. *** Check which specification works best
+. /*
+> twoway scatter ln_shift_to_oecd shift_to_oecd // A: Log of absolute values wit
+> h sign added later
+> twoway scatter prop_shift_oecd shift_to_oecd  // B: Proportional values
+> twoway scatter d_shift_oecd shift_to_oecd // C: Binary
+> twoway scatter shift_ln_home_oecd shift_to_oecd if shift_to_oecd<500 & shift_t
+> o_oecd>-500 // logarithmize befohrehand
+> */
+. 
+. 
+. 
+. // MINDSET PCAs
+. ** Economic
+. alpha econ_ms_1 econ_ms_2 econ_ms_3 econ_ms_4 econ_ms_5 econ_ms_6 
+variable econ_ms_1 not found
+r(111);
+
+end of do-file
+r(111);
+
+end of do-file
+
+r(111);
+
+. doedit "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\
+> Donia_Delegates\8_Submission\analysis\run.do"
+
+. do "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\analysis\scripts\01 - clean.do"
+
+. *--------------------------------------------------
+. * Generate.do
+. * START: 2023-01-30
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. * Max (G-Drive)
+. global stata "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delega
+> tes\4_Carbon_Prices\STATA"
+
+. global workpath   "$stata\DO-FILES"
+
+. global datapath   "$stata\DTA-FILES"
+
+. global output     "$stata\OUTPUT"
+
+. global xls        "$stata\XLS-FILES"
+
+. 
+. 
+. use "$datapath\delegates_final.dta", clear
+
+. 
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. 
+. 
+. *---------------------
+. * I) Preparing Dataset: Generating
+. *---------------------
+. 
+. // Data inconsistencies
+. * Some participants (n= 4) stated that a temp rise of 0 is acceptable which ca
+> n be reached by a carbon price of 0; either they did not understand/pay attent
+> ion or do not deem carbon tax a useful tool; we could think of excluding these
+>  participants
+. gen temp_price_0 = 0
+
+. replace temp_price_0 = 1 if temp_rise == 0 & carbon_price == 0
+(4 real changes made)
+
+. lab var temp_price_0 "Stated that a 0 degree rise could be achieved by carbon 
+> price = 0"
+
+. 
+. 
+. 
+. 
+. * Education
+. tab edu, generate(edu)
+
+     Field in which |
+  highes degree was |
+           obtained |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+    Natural Science |        126       45.49       45.49
+     Social Science |         55       19.86       65.34
+Mix: Social&Natural |         47       16.97       82.31
+                Law |         26        9.39       91.70
+              Other |         23        8.30      100.00
+--------------------+-----------------------------------
+              Total |        277      100.00
+
+. 
+. ** Organizations working for
+. tab organization, generate(organization)
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. *---- Organization currently working for
+. gen orga = .
+(277 missing values generated)
+
+. replace orga = 1 if organization == 1 | organization == 2 // International (11
+> ) & national (168) gov orga 
+(179 real changes made)
+
+. replace orga = 2 if organization == 3 //  University/Research Institute
+(33 real changes made)
+
+. replace orga = 3 if organization == 5 //  Environmental NGO
+(25 real changes made)
+
+. replace orga = 4 if organization == 4 |  organization == 6 |  organization == 
+> 7 //  Private Company (n=8), Non-environmental NGO (n=6), Other (n=26)
+(40 real changes made)
+
+. tab organization
+
+         Type of organization |
+        currently working for |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+  Internat. Gov. Organization |         11        3.97        3.97
+       Nat. Gov. Organization |        168       60.65       64.62
+University/Research Institute |         33       11.91       76.53
+              Private Company |          8        2.89       79.42
+            Environmental NGO |         25        9.03       88.45
+        Non-Environmental NGO |          6        2.17       90.61
+                        Other |         26        9.39      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. lab define orga_lab 1 "Governmental Organization" 2 "University/Research Insti
+> tute" 3 "Environmental NGO" 4 "Other"
+
+. lab val orga orga_lab
+
+. tab orga, gen(orga)
+
+                         orga |      Freq.     Percent        Cum.
+------------------------------+-----------------------------------
+    Governmental Organization |        179       64.62       64.62
+University/Research Institute |         33       11.91       76.53
+            Environmental NGO |         25        9.03       85.56
+                        Other |         40       14.44      100.00
+------------------------------+-----------------------------------
+                        Total |        277      100.00
+
+. 
+. 
+. ** Logarithmic form of suggested carbon prices
+. gen ln_carbon_price = ln(carbon_price + 1)
+
+. label var ln_carbon_price "Natural logarithm of suggested carbon_price"
+
+. 
+. ** Logarithms of prices suggested prices for home, OECD, LDC / now, future
+. foreach var in price_home_now price_oecd_now price_ldc_now price_home_future p
+> rice_oecd_future price_ldc_future {
+  2. gen ln_`var' = log(`var' + 1)
+  3. }
+
+. lab var ln_price_home_now "Ln of Price Home Now"
+
+. lab var ln_price_oecd_now "Ln of Price OECD Now"
+
+. lab var ln_price_ldc_now "Ln of Price LDCs Now"
+
+. lab var ln_price_home_future "Ln of Price Home Future"
+
+. lab var ln_price_oecd_future "Ln of Price OECD Future"
+
+. lab var ln_price_ldc_future "Ln of Price LDCs Future"
+
+. 
+. ** Price suggested below 60 USD
+. gen price_below = .
+(277 missing values generated)
+
+. replace price_below = 0 if carbon_price >= 60 
+(126 real changes made)
+
+. replace price_below = 1 if carbon_price < 60 
+(151 real changes made)
+
+. lab var price_below "Price suggested < USD60"
+
+. 
+. ** Temperature above 1.5 degrees
+. gen temp_above = .
+(277 missing values generated)
+
+. replace temp_above = 0 if temp_rise <= 1.5
+(216 real changes made)
+
+. replace temp_above = 1 if temp_rise > 1.5
+(61 real changes made)
+
+. 
+. 
+. ** Shifting
+. // Other countries
+. * To OECD
+. gen shift_to_oecd = price_oecd_now - price_home_now 
+
+. lab var shift_to_oecd "Shift to OECD Countries (if > 0 shift to others)" 
+
+. * To LDCs
+. gen shift_to_ldc = price_ldc_now - price_home_now 
+
+. lab var shift_to_ldc "Shift to LD Countries (if > 0 shift to others)" 
+
+. 
+. * From LDC to OECD
+. gen shift_ldc_oecd = price_oecd_now - price_ldc_now 
+
+. lab var shift_ldc_oecd "Shift from LDC to OECD (if > 0 OECD-countries should p
+> ay higher price)"
+
+. 
+. // Shifting responsibilties to the future
+. * Home Country
+. gen shift_future_home = price_home_future - price_home_now 
+
+. lab var shift_future_home "Shift to future: Home (if>0 shift to future)" 
+
+. * OECD Countries
+. gen shift_future_oecd = price_oecd_future - price_oecd_now 
+
+. lab var shift_future_oecd "Shift to future: OECD (if>0 shift to future)"
+
+. * Least Developed Countries
+. gen shift_future_ldc = price_ldc_future  - price_ldc_now
+
+. lab var shift_future_ldc "Shift to future: Home (if>0 shift to future)"
+
+. 
+. 
+. /* 
+> How to treat the shifting variables [large outliers...]
+> 
+>         A) Log. of shifting to other countries / future
+> To reduce outliers, it could be helpful to use logarithms. However, the differ
+> ence is negative in some cases. Therefore, taking the logarithm after taking t
+> he difference is not straightforward. Calculating the logarithm beforehand and
+>  taking differences between logaritzmized values does not work! (I tried :) ->
+>  values do not fit when plotted against diff of unlogarithmized values)
+> Solutions namend:
+> I)  Take log of absolute values and add sign after
+> II) Add minimum value [arbitrary number] => For robustness could also try this
+> !
+> 
+> https://www.statalist.org/forums/forum/general-stata-discussion/general/625369
+> -log-transformation-of-negative-values
+> https://www.researchgate.net/post/How-can-I-log-transform-a-series-with-both-p
+> ositive-and-negative-values
+> 
+>         B) Proportional to own 
+> Another possibility would be to use shares: In comparison to the price suggest
+> ed to be payed by own country, how much smaller/bigger is the price suggested 
+> to be payed by others [this could get rid of huge numbers if they are given pr
+> obortionally]:
+>         Share: price home / price others
+>         Problem: how to deal with 0s in denominator when nominator not 0 ? (if
+>  both 0 proportion = 1)
+> 
+> 
+>         C) Binaries
+> Shifting to other countries / to future yes/no
+> 
+> */
+. 
+. *A) LOGs
+. foreach var in shift_to_oecd shift_to_ldc shift_ldc_oecd shift_future_home shi
+> ft_future_oecd shift_future_ldc {
+  2.     gen ln_`var' = .
+  3.         replace ln_`var' = ln(`var' + 1) if `var' >= 0
+  4.         replace ln_`var' = ln((`var' - 1) * (-1)) * (-1) if `var' < 0
+  5. }
+(277 missing values generated)
+(227 real changes made)
+(50 real changes made)
+(277 missing values generated)
+(157 real changes made)
+(120 real changes made)
+(277 missing values generated)
+(225 real changes made)
+(52 real changes made)
+(277 missing values generated)
+(252 real changes made)
+(25 real changes made)
+(277 missing values generated)
+(243 real changes made)
+(34 real changes made)
+(277 missing values generated)
+(253 real changes made)
+(24 real changes made)
+
+. lab var ln_shift_to_oecd "Shift to OECD countries"
+
+. lab var ln_shift_to_ldc "Shift to least developed countries"
+
+. lab var ln_shift_ldc_oecd "OECD pay more than LDC"
+
+. lab var ln_shift_future_home  "Shift to future home country"
+
+. lab var ln_shift_future_oecd "Shift to future in OECD countries"
+
+. lab var ln_shift_future_ldc "Shift to future in least developed countries"
+
+. 
+. *B) Proportional
+. gen prop_shift_oecd = price_oecd_now / price_home_now
+(19 missing values generated)
+
+. replace prop_shift_oecd = 1 if price_home_now == 0 & price_oecd_now == 0
+(6 real changes made)
+
+. lab var prop_shift_oecd "Price OECD countries should pay in comparison to paym
+> ent in home"
+
+. 
+. gen prop_shift_ldc = price_ldc_now / price_home_now 
+(19 missing values generated)
+
+. replace prop_shift_ldc = 1 if price_home_now == 0 & price_ldc_now == 0
+(14 real changes made)
+
+. lab var prop_shift_ldc "Price LD countries should pay in comparison to payment
+>  in home"
+
+. 
+. gen prop_shift_ldc_oecd = price_oecd_now / price_ldc_now
+(29 missing values generated)
+
+. replace prop_shift_ldc = 1 if price_oecd_now == 0 & price_ldc_now == 0
+(0 real changes made)
+
+. lab var prop_shift_ldc "Price OECD countries should pay in comparison to LDCs"
+
+. 
+. gen prop_shift_future_home = price_home_future / price_home_now 
+(19 missing values generated)
+
+. replace prop_shift_future_home = 1 if price_home_now == 0 & price_home_future 
+> == 0
+(10 real changes made)
+
+. lab var prop_shift_future_home "Future price suggested for home in comparison 
+> to now"
+
+. 
+. *C) Binary
+. gen d_shift_oecd = .
+(277 missing values generated)
+
+. replace d_shift_oecd = 1 if shift_to_oecd > 0
+(146 real changes made)
+
+. replace d_shift_oecd = 0 if shift_to_oecd <= 0
+(131 real changes made)
+
+. lab var d_shift_oecd "Dummy: Shift to OECD countries"
+
+. 
+. gen d_shift_ldc= .
+(277 missing values generated)
+
+. replace d_shift_ldc = 1 if shift_to_ldc > 0
+(45 real changes made)
+
+. replace d_shift_ldc = 0 if shift_to_ldc <= 0
+(232 real changes made)
+
+. lab var d_shift_ldc "Dummy: Shift to LDC countries"
+
+. 
+. gen d_shift_ldc_oecd= .
+(277 missing values generated)
+
+. replace d_shift_ldc_oecd = 1 if shift_ldc_oecd > 0
+(187 real changes made)
+
+. replace d_shift_ldc_oecd = 0 if shift_ldc_oecd <= 0
+(90 real changes made)
+
+. lab var d_shift_ldc_oecd "Dummy: Shift from OECD to LDCs"
+
+. 
+. gen d_shift_future_home = .
+(277 missing values generated)
+
+. replace d_shift_future_home = 1 if shift_future_home > 0
+(219 real changes made)
+
+. replace d_shift_future_home = 0 if shift_future_home <= 0
+(58 real changes made)
+
+. lab var d_shift_future_home "Dummy: Shift to future in home country"
+
+. 
+. 
+. * ) Ln before difference
+. gen shift_ln_home_oecd =  ln_price_home_now - ln_price_oecd_now 
+
+. lab var shift_ln_home_oecd "Home to OECD: Difference of lograithmized values"
+
+. 
+. gen shift_ln_home_ldc = ln_price_home_now - ln_price_ldc_now 
+
+. lab var shift_ln_home_ldc "Home to LDCs: Difference of lograithmized values"
+
+. 
+. gen shift_ln_ldc_oecd = ln_price_ldc_now - ln_price_oecd_now 
+
+. lab var shift_ln_ldc_oecd "LDCsto OECD: Difference of lograithmized values"
+
+. 
+. gen shift_ln_future_home = ln_price_home_now - ln_price_home_future
+
+. lab var shift_ln_future_home "Present to future (home): Difference of lograith
+> mized values"
+
+. 
+. 
+. 
+. *** Check which specification works best
+. /*
+> twoway scatter ln_shift_to_oecd shift_to_oecd // A: Log of absolute values wit
+> h sign added later
+> twoway scatter prop_shift_oecd shift_to_oecd  // B: Proportional values
+> twoway scatter d_shift_oecd shift_to_oecd // C: Binary
+> twoway scatter shift_ln_home_oecd shift_to_oecd if shift_to_oecd<500 & shift_t
+> o_oecd>-500 // logarithmize befohrehand
+> */
+. 
+. 
+. 
+. // MINDSET PCAs
+. ** Economic
+. alpha tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .4617363
+Number of items in the scale:            6
+Scale reliability coefficient:      0.7215
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.51892      1.53219             0.4198       0.4198
+           Comp2 |      .986735      .208226             0.1645       0.5843
+           Comp3 |      .778509       .14601             0.1298       0.7140
+           Comp4 |      .632499     .0669656             0.1054       0.8194
+           Comp5 |      .565533     .0477336             0.0943       0.9137
+           Comp6 |        .5178            .             0.0863       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 
+    --------------------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+       tech_ms_1 |           0 
+       tech_ms_2 |           0 
+       tech_ms_3 |           0 
+       tech_ms_4 |           0 
+       tech_ms_5 |           0 
+       tech_ms_6 |           0 
+    ---------------------------
+
+. predict tech_ms_pca
+(score assumed)
+(5 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 
+    --------------------------------------------------------------------------
+
+. lab var tech_ms_pca "PCA: Items on economic mindset"
+
+. 
+. ** Environmental
+. alpha env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .1712539
+Number of items in the scale:            5
+Scale reliability coefficient:      0.6299
+
+. pca env_ms_1 env_ms_2 env_ms_3 env_ms_4 env_ms_5 
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          5
+                                                 Trace            =          5
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.06297      1.04742             0.4126       0.4126
+           Comp2 |      1.01555      .252677             0.2031       0.6157
+           Comp3 |      .762872     .0617721             0.1526       0.7683
+           Comp4 |        .7011      .243594             0.1402       0.9085
+           Comp5 |      .457505            .             0.0915       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 
+    ----------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+        env_ms_1 |           0 
+        env_ms_2 |           0 
+        env_ms_3 |           0 
+        env_ms_4 |           0 
+        env_ms_5 |           0 
+    ---------------------------
+
+. predict env_ms_pca
+(score assumed)
+(4 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+        env_ms_1 |   0.4047    0.3594    0.7776    0.3057    0.0942 
+        env_ms_2 |   0.4010    0.5335   -0.2173   -0.6753    0.2266 
+        env_ms_3 |   0.4411    0.2098   -0.5875    0.6411    0.0726 
+        env_ms_4 |   0.4244   -0.6698    0.0525   -0.0927    0.5999 
+        env_ms_5 |   0.5483   -0.3058    0.0169   -0.1759   -0.7580 
+    ----------------------------------------------------------------
+
+. lab var env_ms_pca "PCA: Items on environmental mindset"
+
+. 
+. ** Form Binaries from PCAs
+. * Economic
+. gen d_tech_ms = .
+(277 missing values generated)
+
+. replace d_tech_ms = 1 if tech_ms_pca > 0
+(156 real changes made)
+
+. replace d_tech_ms = 0 if tech_ms_pca < 0
+(121 real changes made)
+
+. 
+. * Environmental
+. gen d_env_ms = .
+(277 missing values generated)
+
+. replace d_env_ms = 1 if env_ms_pca > 0
+(153 real changes made)
+
+. replace d_env_ms = 0 if env_ms_pca < 0
+(124 real changes made)
+
+. 
+. 
+. ** Continents
+. tab continent, gen(cont)
+
+    Continent |      Freq.     Percent        Cum.
+--------------+-----------------------------------
+       Africa |        126       45.49       45.49
+         Asia |         45       16.25       61.73
+       Europe |         68       24.55       86.28
+North America |         18        6.50       92.78
+South America |         12        4.33       97.11
+      Oceania |          8        2.89      100.00
+--------------+-----------------------------------
+        Total |        277      100.00
+
+. rename cont1 africa
+
+. rename cont2 asia
+
+. rename cont3 europe
+
+. rename cont4 north_america
+
+. rename cont5 south_america
+
+. rename cont6 oceania
+
+. 
+. ** logarithm of GDP
+. gen ln_gdppc = ln(gdppc)
+
+. lab var ln_gdppc "Ln of GDP per capita (constant 2015 US$)"
+
+. 
+. ** logarithm of CO2-emissions per capita
+. gen ln_co2_emissionpc = ln(co2_emissionpc)
+(1 missing value generated)
+
+. lab var ln_co2_emissionpc "Ln of CO2 emissions per capita"
+
+. 
+. 
+. 
+. ** Affectedness by climate change consequences
+. * CRI as rank => distribute to low - mid - high; Score from 5.5 to 125 => each
+>  range being 120/3 = 40
+. gen cri_range = .
+(277 missing values generated)
+
+. replace cri_range = 1 if cri_score >= 0 & cri_score < 45
+(67 real changes made)
+
+. replace cri_range = 2 if cri_score >= 45 & cri_score < 110
+(142 real changes made)
+
+. replace cri_range = 3 if cri_score >= 110 & cri_score <= 125
+(59 real changes made)
+
+. 
+. 
+. 
+. * Squared temperature rise
+. gen temp_rise_sq = temp_rise * temp_rise
+
+. lab var temp_rise_sq "Squared temperature rise deemed acceptable"
+
+. 
+. /*
+> very few people suggested temperatures of 2.5 or higher to be acceptable [2.5:
+>  9; 3: 4; 3.5&4: each 2; 5: 4 => put together all suggesting 2.5 or more?]
+> */
+. gen temp_rise4 = temp_rise
+
+. replace temp_rise4 = 2.5 if temp_rise >= 2.5
+(12 real changes made)
+
+. tostring temp_rise4, gen(temp_rise3)
+temp_rise3 generated as str3
+
+. sort temp_rise
+
+. lab define temp 1 "0" 2 ".5" 3 "1" 4 "1.5", replace
+
+. encode temp_rise3, gen(temp_rise2) lab(temp)
+
+. lab var temp_rise2 "All those suggesting 2.5 or more collected in 2.5"
+
+. drop temp_rise3 temp_rise4
+
+. 
+. /*
+> put together all suggesting 3 or more
+> */
+. gen temp_rise5 = temp_rise
+
+. replace temp_rise5 = 3 if temp_rise >= 3
+(8 real changes made)
+
+. tostring temp_rise5, gen(temp_rise4)
+temp_rise4 generated as str3
+
+. sort temp_rise
+
+. lab define temp3 1 "0" 2 ".5" 3 "1" 4 "1.5" 5 "2" 6 "2.5" 7 "3" , replace
+
+. encode temp_rise4, gen(temp_rise3) lab(temp3)
+
+. lab var temp_rise3 "All those suggesting 3 or more collected in 3"
+
+. drop temp_rise4 temp_rise5
+
+. 
+. 
+. 
+. /*
+> Some participants named low temperature to be achieved with (very) low carbon 
+> price
+> */
+. gen temp_rise_25 = 0
+
+. replace temp_rise_25 = 1 if temp_rise >= 2.5
+(21 real changes made)
+
+. 
+. /*
+> cibar tech_ms_pca, over1(temp_rise_25)
+> ttest tech_ms_pca, by(temp_rise_25)
+> ttest env_ms_pca, by(temp_rise_25)
+> probit temp_rise_25 tech_ms_pca env_ms_pca , vce(robust)
+> margins, dydx(*)
+> 
+> probit temp_rise_25 tech_ms_pca env_ms_pca influential_1 influential_2 influen
+> tial_3 influential_4 influential_5 influential_6 ln_gdppc, vce(robust)
+> margins, dydx(*)
+> */
+. 
+. /*
+> Some participants named low temperature to be achieved with (very) low carbon 
+> price
+> */
+. gen inconsistent = 0
+
+. replace inconsistent = 1 if carbon_price <= 10 & temp_rise < 1.5 // n = 28
+(28 real changes made)
+
+. tab country_home if inconsistent == 1
+
+                           Home country |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+                            Afghanistan |          1        3.57        3.57
+                                Algeria |          1        3.57        7.14
+                                Belgium |          1        3.57       10.71
+                                 Belize |          1        3.57       14.29
+                                 Brazil |          1        3.57       17.86
+                               Cambodia |          2        7.14       25.00
+                                Comoros |          1        3.57       28.57
+                                  Congo |          1        3.57       32.14
+                          Côte d’Ivoire |          1        3.57       35.71
+                                  Ghana |          2        7.14       42.86
+                              Indonesia |          1        3.57       46.43
+                                  Italy |          1        3.57       50.00
+       Lao People's Democratic Republic |          1        3.57       53.57
+                             Madagascar |          2        7.14       60.71
+                               Maldives |          1        3.57       64.29
+                                  Nepal |          2        7.14       71.43
+                                  Niger |          1        3.57       75.00
+                                Nigeria |          2        7.14       82.14
+                           Sierra Leone |          1        3.57       85.71
+                                  Sudan |          1        3.57       89.29
+                               Tanzania |          1        3.57       92.86
+                               Thailand |          1        3.57       96.43
+                                   Togo |          1        3.57      100.00
+----------------------------------------+-----------------------------------
+                                  Total |         28      100.00
+
+. 
+. 
+. 
+. /*
+> cibar tech_ms_pca, over1(inconsistent)
+> cibar env_ms_pca, over1(inconsistent)
+> ttest tech_ms_pca, by(inconsistent)
+> ttest env_ms_pca, by(inconsistent)
+> probit inconsistent tech_ms_pca env_ms_pca , vce(robust)
+> margins, dydx(*)
+> probit inconsistent tech_ms_pca env_ms_pca influential_1 influential_2 influen
+> tial_3 influential_4 influential_5 influential_6 ln_gdppc, vce(robust)
+> margins, dydx(*)
+> */
+. 
+. 
+. 
+. 
+. 
+. 
+. /*
+> Different models suggest different minimal global carbon prices to stay below 
+> a certain temperature rise. For the moment we take USD60 as the threshold. How
+> ever, this is to be checked and adapted later (!)
+> */
+. gen price_below_60 = 0
+
+. replace price_below_60 = 1 if carbon_price < 60 
+(151 real changes made)
+
+. lab var price_below_60 "Price below USD60 when temp_rise <= 2"
+
+. 
+. gen price_below_185 = 0
+
+. replace price_below_185 = 1 if carbon_price < 185 
+(224 real changes made)
+
+. lab var price_below_185 "Price below USD185 when temp_rise <= 2"
+
+. 
+. 
+. 
+. 
+. save "$datapath\delegates_analysis.dta", replace
+file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carbo
+> n_Prices\STATA\DTA-FILES\delegates_analysis.dta saved
+
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\analysis\scripts\02 - analysis.do"
+
+. *--------------------------------------------------
+. * Analysis.do
+. * START: 2021-10-01
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. /*
+> Main Body:
+> - Fig. 1: Descriptives
+>         a) Carbon price and temperature rise
+>         b) Shifting the burden
+>         c) Strategic negotiation
+> 
+> - Fig. 2: Inferential
+>         a) Carbon price and temperature rise
+>         b) Shifting the burden
+>         c) Strategic negotiation
+> */
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. * Max (G-Drive)
+. global stata "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delega
+> tes\4_Carbon_Prices\STATA"
+
+. global workpath   "$stata\DO-FILES"
+
+. global datapath   "$stata\DTA-FILES"
+
+. global output     "$stata\OUTPUT"
+
+. global xls        "$stata\XLS-FILES"
+
+. global datasource "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\2_Raw Data\DTA-FILES"
+
+. 
+. 
+. use "$datapath\delegates_analysis.dta", clear
+
+. 
+. 
+. 
+. 
+. 
+. // Generating
+. gen carbon_price_cap = carbon_price
+
+. replace carbon_price_cap  = 501 if carbon_price > 500
+(23 real changes made)
+
+. egen mean_carbon_price = mean(carbon_price), by(temp_rise2)
+
+. egen median_carbon_price = median(carbon_price), by(temp_rise2)
+
+. tab temp_rise2 , gen(tr)
+
+  All those |
+ suggesting |
+2.5 or more |
+  collected |
+     in 2.5 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |         22        7.94        7.94
+         .5 |         36       13.00       20.94
+          1 |         42       15.16       36.10
+        1.5 |        116       41.88       77.98
+          2 |         40       14.44       92.42
+        2.5 |         21        7.58      100.00
+------------+-----------------------------------
+      Total |        277      100.00
+
+. 
+. alpha tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     .4617363
+Number of items in the scale:            6
+Scale reliability coefficient:      0.7215
+
+. 
+. gen ambition_home_fut = .
+(277 missing values generated)
+
+. replace ambition_home_fut = 1 if price_home_now < 60  & price_home_future < 60
+>   // Low ambition
+(148 real changes made)
+
+. replace ambition_home_fut = 2 if price_home_now < 60  & price_home_future >= 6
+> 0 // Shift to future
+(50 real changes made)
+
+. replace ambition_home_fut = 3 if price_home_now >= 60 & price_home_future < 60
+>   // Shift to now
+(3 real changes made)
+
+. replace ambition_home_fut = 4 if price_home_now >= 60 & price_home_future >= 6
+> 0 // High ambition
+(76 real changes made)
+
+. 
+. lab define ambition_fut 1 "Low ambition" 2 "Future pay more" 3 "Now pay more" 
+> 4 "High ambition", replace
+
+. lab val ambition_home_fut ambition_fut
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. 
+. * Text size: B (A&C * 2/3)
+. global ratio_abc = 3/4
+
+. display $ratio_abc * $head
+7.5
+
+. display $ratio_abc * $legend  
+6
+
+. display $ratio_abc * $xytitle
+6
+
+. display $ratio_abc * $xylab  
+6
+
+. 
+. // Fig 1 A: Stripplot: Price and temperature rise (Descriptives)
+. * Generate variable defining position of observations on x-axis
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise2) unique
+
+. egen temp_rise2_freq = count(carbon_price_cap), by(temp_rise2)
+
+. gen  temp_rise2_jitter2 = temp_rise2 + (carbon_price_rank *.006) - (temp_rise2
+> _freq / 2 * 0.006)
+
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        116    4.121002    1.359837          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. 
+. twoway ///
+> (scatter carbon_price_cap temp_rise2_jitter2 , mcolor(%30) msize(medium) msymb
+> ol(o))              ///
+> (scatter mean_carbon_price temp_rise2 , mcolor(538g) msymbol(triangle))       
+>                            ///
+> (scatter median_carbon_price temp_rise2 , mcolor(538r) msymbol(square))       
+>                            ///
+> , title("{bf:a }", pos(11) span size($head pt))                               
+>                            ///
+> ytitle("Global carbon price (USD/tCO2)", size($xytitle pt))                   
+>                            ///
+> ylabel(, labsize($xylab pt))                                                  
+>                            ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  margin(0 
+> 0 0 4))                    ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1°C" "(n=`
+> n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')" "' 6 `" "{&ge}2.5
+> °C" "(n=`n_6')" "' , labsize(2.5 pt))                                         
+>        ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) rows(3) pos
+> (6) ring(1) region(fcolor(%40)))
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538r not found in class color, default attributes used)
+(note:  named style 538r not found in class color, default attributes used)
+
+. 
+. graph save "$output\price_temprise", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\price_temprise.gph saved)
+
+. graph export "$output\Figures\price_temprise.tif", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\Figures\price_temprise.tif written in TIFF format)
+
+. 
+. 
+. // Fig. 1 B: Shifting the burden to other countries and the future (Descriptiv
+> es)
+. preserve
+
+. *gen income_level = (income_level -5 ) * (-1)
+. *lab define income_level1 1 "High" 2 "Upper-middle" 3 "Lower-middle" 4 "Low"
+. *lab val income_level income_level1
+. 
+. forvalues i = 1/4 {
+  2. sum income_level if income_level == `i'
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         50           1           0          1          1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |        103           2           0          2          2
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         56           3           0          3          3
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+income_level |         68           4           0          4          4
+
+. 
+. collapse (median) price_home_now price_oecd_now price_ldc_now price_home_futur
+> e price_oecd_future price_ldc_future , by(income_level)
+
+. 
+. foreach var in price_home price_oecd price_ldc {
+  2. rename `var'_now `var'1
+  3. rename `var'_future `var'2
+  4. }
+
+. 
+. reshape long price_home price_oecd price_ldc, i(income_level) j(now_future)
+(note: j = 1 2)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                        4   ->       8
+Number of variables                   7   ->       5
+j variable (2 values)                     ->   now_future
+xij variables:
+                price_home1 price_home2   ->   price_home
+                price_oecd1 price_oecd2   ->   price_oecd
+                  price_ldc1 price_ldc2   ->   price_ldc
+-----------------------------------------------------------------------------
+
+. 
+. lab define now_future 1 "Now" 2 "Future"
+
+. lab val now_future now_future
+
+. 
+. gen income_level_future = .
+(8 missing values generated)
+
+. replace income_level_future  = income_level if now_future == 1
+(4 real changes made)
+
+. replace income_level_future  = income_level + .25 if now_future == 2
+(4 real changes made)
+
+. 
+. global y = -6
+
+. twoway ///
+>         rspike price_home price_oecd income_level if now_future == 1, vertical
+>  lwidth(vthick) lcolor(538y%25) xlabel(0(25)150)       || /// Now: Home-OECD
+>         rspike price_home price_ldc income_level if now_future == 1, vertical 
+> lwidth(vthick) lcolor(538bs1%25) xlabel(0(25)150)      || /// Now: Home-LDC
+>         rspike price_home price_oecd income_level_future if now_future == 2, v
+> ertical lwidth(vthick) lcolor(538y%25) xlabel(0(25)150)  || /// Future: Home-O
+> ECD
+>         rspike price_home price_ldc income_level_future  if now_future == 2, v
+> ertical lwidth(vthick) lcolor(538bs1%25) xlabel(0(25)150)|| /// Future: Home-L
+> DC
+>     scatter price_ldc  income_level if now_future == 1,  mcolor(538bs1%80)    
+>        || /// Now: LDC
+>         scatter price_home income_level if now_future == 1,  mcolor(538g%80)  
+>            || /// Now: Home
+>         scatter price_oecd income_level if now_future == 1,  mcolor(538y%80)  
+>            || /// Now: OECD
+>     scatter price_ldc  income_level_future if now_future == 2,  mcolor(538bs1%
+> 80)      || /// Future: LDC
+>         scatter price_home income_level_future if now_future == 2,  mcolor(538
+> g%80)        || /// Future: Home
+>         scatter price_oecd income_level_future if now_future == 2,  mcolor(538
+> y%80)        || /// Future: OECDw-Future: LDC, High
+>     line price_home income_level_future if income_level == 1,  lcolor(538g%40)
+>   lpattern(dash) || /// Now-Future: Home, Low
+>         line price_home income_level_future if income_level == 2,  lcolor(538g
+> %40)  lpattern(dash) || /// Now-Future: Home, Low-Mid
+>         line price_home income_level_future if income_level == 3,  lcolor(538g
+> %40)  lpattern(dash) || /// Now-Future: Home, Upper-Mid
+>         line price_home income_level_future if income_level == 4,  lcolor(538g
+> %40)  lpattern(dash)    /// Now-Future: Home, High
+>         title("{bf:b }", pos(11) span size($head pt))                         
+>         ///
+>         ytitle("Area-specific carbon price (median, in USD/tCO2)", size($xytit
+> le pt))        ///
+>     ylabel(0 25 50 75 100 125 150, labsize($xylab pt) noticks nogrid) ymtick(2
+> 5 50 75 100 125 150, grid)     ///
+>         yline(0, lcolor(gs12%40) lpattern(solid))                             
+>                                    ///
+>         xtitle(Income level (country), size($xytitle pt) margin(0 0 0 4))     
+>                                                 ///
+>         xlabel(1.125 `" "Low" "(n=`n_1')" "'  2.125 `" "Low-Mid" "(n=`n_2')" "
+> ' 3.125 `" "Up-Mid" "(n=`n_3')" "' 4.125 `" "High" "(n=`n_4')" "', labsize(2.5
+>  pt))                                    ///
+>         ttext($y 1 "Now " $y 1.25 "Future" $y 2  "Now" $y 2.25 "Future" $y 3 "
+> Now"  $y 3.25 "Future" $y 4 "Now" $y 4.25 "Future", orientation(vertical) plac
+> ement(north) color(gs10) size(7pt))                                           
+>                                      /// Y X "Text"   
+>                 legend(order(5 "Price LDC" 2 "Diff LDC-Home" 6 "Price Home" 11
+>  "Diff Home Now-Future" 7 "Price OECD" 3 "Diff Home-OECD") cols(2) pos(6) ring
+> (1) size($legend pt) region(fcolor(%40))) graphregion(fcolor(none))
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style thin not found in class linestyle, default attributes
+    used)
+
+.                                                                               
+. graph save "$output\shift_regions_now_fut_h", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\shift_regions_now_fut_h.gph saved)
+
+. graph export "$output\Figures\shift_regions_now_fut_h.tif", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\Figures\shift_regions_now_fut_h.tif written in TIFF for
+> mat)
+
+. restore
+
+. 
+. graph combine "$output\price_temprise" "$output\shift_regions_now_fut_h", rows
+> (1) scale(1.3) graphregion(margin(zero))
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538r not found in class color, default attributes used)
+(note:  named style 538r not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538bs1 not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538y not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style 538g not found in class color, default attributes used)
+(note:  named style thin not found in class linestyle, default attributes
+    used)
+
+. graph export "$output\Figures\Fig 1.tif", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\Figures\Fig 1.tif written in TIFF format)
+
+. 
+. 
+. 
+. 
+. // In text statistics
+. * Number of participants nameing prices below 60 USD; above 82 USD, 185 USD, 2
+> 81 USD
+. 
+. foreach i in 82 185 281 {
+  2.         gen price_above_`i' = .
+  3.                 replace price_above_`i'= 1 if carbon_price >= `i'
+  4.                 replace price_above_`i'= 0 if carbon_price <  `i'
+  5. }
+(277 missing values generated)
+(102 real changes made)
+(175 real changes made)
+(277 missing values generated)
+(53 real changes made)
+(224 real changes made)
+(277 missing values generated)
+(36 real changes made)
+(241 real changes made)
+
+. sum price_below_60 price_above_82 price_above_185 price_above_281
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+price_bel~60 |        277    .5451264    .4988607          0          1
+price_abo~82 |        277     .368231    .4831975          0          1
+price_ab~185 |        277    .1913357    .3940647          0          1
+price_ab~281 |        277    .1299639    .3368723          0          1
+
+. 
+. ** Difference in variance of prices named: Temp < 1.5°C vs. Temp >= 1.5°C
+. * Levines Test for variance in outcome variable (log price) between temperatur
+> e rise deemed acceptable (https://www.statology.org/levenes-test-stata/)
+. gen temp_rise1 = 0 
+
+. replace temp_rise1 = 1 if temp_rise >=1.5
+(177 real changes made)
+
+. robvar ln_carbon_price, by(temp_rise1)
+
+            |   Summary of Natural logarithm of
+            |       suggested carbon_price
+ temp_rise1 |        Mean   Std. Dev.       Freq.
+------------+------------------------------------
+          0 |   3.8382722   2.0370112         100
+          1 |   3.9483867   1.3800589         177
+------------+------------------------------------
+      Total |   3.9086341   1.6448975         277
+
+W0  =  21.724332   df(1, 275)     Pr > F = 0.00000491
+
+W50 =  19.055859   df(1, 275)     Pr > F = 0.00001799
+
+W10 =  21.240064   df(1, 275)     Pr > F = 0.00000621
+
+. 
+. sdtest ln_carbon_price, by(temp_rise1)
+
+Variance ratio test
+------------------------------------------------------------------------------
+   Group |     Obs        Mean    Std. Err.   Std. Dev.   [95% Conf. Interval]
+---------+--------------------------------------------------------------------
+       0 |     100    3.838272    .2037011    2.037011    3.434085    4.242459
+       1 |     177    3.948387    .1037316    1.380059    3.743669    4.153104
+---------+--------------------------------------------------------------------
+combined |     277    3.908634    .0988323    1.644898    3.714073    4.103195
+------------------------------------------------------------------------------
+    ratio = sd(0) / sd(1)                                         f =   2.1787
+Ho: ratio = 1                                    degrees of freedom =  99, 176
+
+    Ha: ratio < 1               Ha: ratio != 1                 Ha: ratio > 1
+  Pr(F < f) = 1.0000         2*Pr(F > f) = 0.0000           Pr(F > f) = 0.0000
+
+. 
+. robvar ln_carbon_price, by(temp_rise2)
+
+  All those |
+ suggesting |
+2.5 or more |   Summary of Natural logarithm of
+  collected |       suggested carbon_price
+     in 2.5 |        Mean   Std. Dev.       Freq.
+------------+------------------------------------
+          0 |   3.3230653    2.261287          22
+         .5 |   3.7220195   2.1273951          36
+          1 |   4.2077877    1.800718          42
+        1.5 |   4.1210022   1.3598374         116
+          2 |   3.6598595   1.4071658          40
+        2.5 |   3.5444665   1.3250075          21
+------------+------------------------------------
+      Total |   3.9086341   1.6448975         277
+
+W0  =  5.6986214   df(5, 271)     Pr > F = 0.0000512
+
+W50 =  4.6690692   df(5, 271)     Pr > F = 0.00041744
+
+W10 =  5.2951108   df(5, 271)     Pr > F = 0.00011666
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. // Fig 2: Inferential (Marginsplot)
+. global head3     22 pt   // Title
+
+. global legend3   18 pt   // Legend
+
+. global xytitle3  20 pt   // Axis title
+
+. global xylab3    20 pt   // Scale label
+
+. global fysize    22 
+
+. global textsize  14 pt
+
+. 
+. global pos_text1 -15 50
+
+. global pos_text2  50 -4
+
+. 
+. 
+. * Fig S2a: Distribution of answers towards tech opt questions
+. pca tech_ms_1-tech_ms_6
+
+Principal components/correlation                 Number of obs    =        277
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.51892      1.53219             0.4198       0.4198
+           Comp2 |      .986735      .208226             0.1645       0.5843
+           Comp3 |      .778509       .14601             0.1298       0.7140
+           Comp4 |      .632499     .0669656             0.1054       0.8194
+           Comp5 |      .565533     .0477336             0.0943       0.9137
+           Comp6 |        .5178            .             0.0863       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+       tech_ms_1 |   0.4209   -0.2633   -0.5003    0.5094   -0.0616    0.4898 
+       tech_ms_2 |   0.4675    0.0472   -0.3545   -0.1233   -0.4416   -0.6658 
+       tech_ms_3 |   0.3770    0.5995   -0.1609   -0.0218    0.6847   -0.0572 
+       tech_ms_4 |   0.4309   -0.2955    0.0755   -0.7704    0.0443    0.3547 
+       tech_ms_5 |   0.3699   -0.5064    0.5224    0.3151    0.3440   -0.3409 
+       tech_ms_6 |   0.3737    0.4746    0.5652    0.1790   -0.4605    0.2673 
+    --------------------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+       tech_ms_1 |           0 
+       tech_ms_2 |           0 
+       tech_ms_3 |           0 
+       tech_ms_4 |           0 
+       tech_ms_5 |           0 
+       tech_ms_6 |           0 
+    ---------------------------
+
+. 
+. global margins 145 0 1 3
+
+. mylabels 0(25)100, myscale(@) local(pctlabel) suffix("%")
+0 "0%" 25 "25%" 50 "50%" 75 "75%" 100 "100%"
+
+. 
+. catplot tech_ms_1 , text($pos_text1 "Future generations will be richer and bet
+> ter equipped to deal" "with adverse impacts of climate change." $pos_text2 "{i
+> t:.42}", size($textsize) place(w) just(right)) stack percent asyvar yla(`pctla
+> bel', nogrid)  title("") bargap(0) blabel(bar, size(medium) format(%9.0f) pos(
+> center)) l1title("")  b1title("") legend(rows(1) pos(6) ring(1) size(vsmall)) 
+> plotregion(margin(zero)) graphregion(margin($margins)) yscale(off) fysize($fys
+> ize)
+
+. graph save "$output/fut_opt1", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt1.gph saved)
+
+. 
+. catplot tech_ms_2 , text($pos_text1  "Technological innovation e.g., solar geo
+> engineering offers" "a suitable solution to respond in case of a future climat
+> e emergency." $pos_text2 "{it:.47}", size($textsize) place(w) just(right)) sta
+> ck percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(bar, siz
+> e(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(1) p
+> os(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(margin($margi
+> ns)) yscale(off) fysize($fysize)
+
+. graph save "$output/fut_opt2", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt2.gph saved)
+
+. 
+. catplot tech_ms_3 , text($pos_text1  "The present costs and future benefits to
+>  society must be weighed" "against each other, while deciding about emission r
+> eduction policies." $pos_text2 "{it:.38}", size($textsize) place(w) just(right
+> )) stack percent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(ba
+> r, size(medium) format(%9.0f) pos(center)) l1title("")  b1title("") legend(row
+> s(1) pos(6) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(margin(
+> $margins)) yscale(off) fysize($fysize)
+
+. graph save "$output/fut_opt3", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt3.gph saved)
+
+. 
+. catplot tech_ms_4 , text($pos_text1 "The usage of conventional energy sources 
+> is inevitable as global" "energy demand is too high to be covered by renewable
+>  energy." $pos_text2 "{it:.43}", size($textsize) place(w) just(right)) stack p
+> ercent asyvar yla(`pctlabel', nogrid)  title("") bargap(0) blabel(bar, size(me
+> dium) format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(1) pos(6
+> ) ring(1) size(vsmall)) plotregion(margin(zero)) graphregion(margin($margins))
+>  yscale(off) fysize($fysize)
+
+. graph save "$output/fut_opt4", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt4.gph saved)
+
+. 
+. catplot tech_ms_5 , text($pos_text1 "Technological innovations for climate cha
+> nge emerge more likely in a" "free-market economy without much interference fr
+> om the Government." $pos_text2 "{it:.37}", size($textsize) place(w) just(right
+> )) stack percent asyvar yla(`pctlabel', nogrid labsize(relative3)) ytitle("per
+> cent", size(relative3)) title("") bargap(0) blabel(bar, size(medium) format(%9
+> .0f) pos(center)) l1title("")  b1title("") legend(rows(3) pos(6) ring(1) size(
+> 7.5 pt) symxsize(2.5)) plotregion(margin(zero)) graphregion(margin($margins)) 
+> fysize(40)
+
+. graph save "$output/fut_opt5", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt5.gph saved)
+
+. 
+. catplot tech_ms_6 , text($pos_text1 "Transformation towards a sustainable soci
+> ety is possible by making" "productions more resourcesaving and without harmin
+> g the economy." $pos_text2 "{it:.37}" 180 2 "{it:Loading}" "{it:(PCA)}", size(
+> $textsize) place(w) just(right)) stack percent asyvar yla(`pctlabel', nogrid) 
+>  title("") bargap(0) blabel(bar, size(medium) format(%9.0f) pos(center)) l1tit
+> le("")  b1title("") legend(rows(3) pos(6) ring(1) size(7.5 pt) rowgap(minuscul
+> e) symxsize(2.5)) plotregion(margin(zero)) graphregion(margin($margins)) yscal
+> e(off) fysize($fysize)
+
+. graph save "$output/fut_opt6", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/fut_opt6.gph saved)
+
+. 
+. grc1leg "$output/fut_opt6" "$output/fut_opt3" "$output/fut_opt2" "$output/fut_
+> opt4" "$output/fut_opt1" "$output/fut_opt5" , cols(1) legendfrom("$output/fut_
+> opt6") title("{bf:a }", size(11 pt)) graphregion(margin(2 3 -3 4)) plotregion(
+> margin(0 0 0 5)) 
+
+. gr_edit .legend.plotregion1.DragBy 1 35
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle horizontal(ce
+> nter) editcopy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox3.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph1.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph2.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph3.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph4.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph5.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. gr_edit .plotregion1.graph6.plotregion1.textbox2.style.editstyle size(13) edit
+> copy
+
+. graph save "$output/econ_pca_items", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT/econ_pca_items.gph saved)
+
+. 
+. graph combine "$output/econ_pca_items" "$output\ms_distr_effects.gph" , rows(2
+> ) ysize(5)
+(note: scheme my538w not found, using s2color)
+(note: scheme my538w not found, using s2color)
+(note: scheme my538w not found, using s2color)
+
+. gr save "$output\fig_2", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\fig_2.gph saved)
+
+. 
+. 
+. * Fig 2b. Raincloud plot for mindset (such as in https://www.cedricscherer.com
+> /2021/06/06/visualizing-distributions-with-raincloud-plots-and-how-to-create-t
+> hem-with-ggplot2/ or https://wellcomeopenresearch.org/articles/4-63)
+. 
+. // For boxplot in twoway: https://stats.oarc.ucla.edu/stata/code/creating-and-
+> extending-boxplots-using-twoway-graphs/
+. * Use egen to generate the median, quartiles, interquartile range (IQR), and m
+> ean. 
+. /*
+> egen med = median(tech_ms_pca)
+> egen lqt = pctile(tech_ms_pca), p(25)
+> egen uqt = pctile(tech_ms_pca), p(75)
+> egen iqr = iqr(tech_ms_pca)
+> egen mean = mean(tech_ms_pca)
+> 
+> * Find the lowest value that is more than lqt - 1.5 iqr (Lower whisker)
+> gen l = tech_ms_pca if(tech_ms_pca >= lqt-1.5*iqr)
+> egen ls = min(l)
+> 
+> * Find the highest value that is less than uqt + 1.5 iqr (Upper whisker)
+> gen u = tech_ms_pca if(tech_ms_pca <= uqt+1.5*iqr)
+> egen us = max(u)
+> 
+> * Set position of "raindrops" on x-axis by attributing ranodm values for x-axi
+> s
+> gen pos_rain = runiform(0.02,0.1)
+> replace pos_rain = pos_rain * (-1)
+> 
+> * Set position of Boxplot (In middle of "raindrops": between pos_rain)
+> gen pos_box = -.06
+> */
+. 
+. global gray gs6
+
+. global width medthick
+
+. twoway ///
+> kdensity tech_ms_pca , recast(area) color(purple*1.5%50)   ||         /// Dist
+> ribution (Cloud)
+> rbar lqt med pos_box, barw(.06) fcolor(white%0) lcolor($gray) lwidth($width) h
+> orizontal  || ///
+> rbar med uqt pos_box, barw(.06) fcolor(white%0) lcolor($gray) lwidth($width) h
+> orizontal  ||  ///
+> rspike lqt ls pos_box, lcolor($gray) lwidth($width) horizontal ||   ///
+> rspike uqt us pos_box, lcolor($gray) lwidth($width) horizontal ||   ///
+> scatter pos_rain tech_ms_pca, color(purple*1.5%25) msize(medium)    /// Single
+>  observation (Rain)
+> , legend(off) yscale(off) ylabel(none) xlabel(-4(2)2, labsize($xylab3)) xtitle
+> ("Technological optimism mindset (PCA)", size($xytitle3)) yla(, labsize($xylab
+> 3))  title("{bf:b }" , size($head3)) graphregion(margin(0 5 0 0)) plotregion(m
+> argin(0 0 0 15)) 
+variable lqt not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\analysis\run.do"
+
+. *-----------------------------------------------------------------------------
+> --------------------------
+. * OVERVIEW
+. *-----------------------------------------------------------------------------
+> --------------------------
+. *   This script generates tables and figures reported in the manuscript and SO
+> M of the paper:
+. *   CLIMATE DELAY: THE DOWNSIDE OF BELIEVING IN TECHNOLOGICAL FIXES
+. *       Author: Max Burger, Philipps University Marburg
+. *   All experimental data are stored in /data
+. *   All figures reported in the main manuscript and SOM are outputted to /resu
+> lts/figures
+. *   All tables areported in the main manuscript and SOM are outputted to /resu
+> lts/tables
+. *   TO PERFORM A CLEAN RUN, DELETE THE FOLLOWING TWO FOLDERS:
+. *    /processed
+. *    /results
+. *-----------------------------------------------------------------------------
+> --------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Set global Working Directory
+. *--------------------------------------------------
+. * Define this global macro to point where the replication folder is saved loca
+> lly that includes this run.do script
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\analysis"
+
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. * Initialize log and record system parameters
+. clear
+
+. set more off
+
+. cap mkdir "$working_ANALYSIS/scripts/logs"
+
+. cap log close

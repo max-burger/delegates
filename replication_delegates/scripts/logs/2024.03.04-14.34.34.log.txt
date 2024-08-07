@@ -1,0 +1,4234 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis/scripts/logs/2024.03.04-14.34.34.log.txt
+  log type:  text
+ opened on:   4 Mar 2024, 14:34:34
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time:  4 Mar 2024 14:34:34
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red // select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, that is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces transparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "255 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "220 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "220 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_label tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *------------------
+. *       Maps
+. *------------------
+. 
+. /* What needs to be installed:
+> ssc install spmap
+> ssc install shp2dta
+> ssc install mif2dta
+> ssc install geo2xy
+> ssc install moss
+> 
+> net install palettes, replace from("https://raw.githubusercontent.com/benjann/
+> palettes/master/")
+> net install colrspace, replace from("https://raw.githubusercontent.com/benjann
+> /colrspace/master/")
+> 
+> *Tutorial: https://www.stata.com/support/faqs/graphics/spmap-and-maps/
+> *Source of shapefile:   */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. 
+. 
+. * Max (work)
+. global stata "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Su
+> stUse\Donia_Delegates\4_Carbon_Prices\STATA"
+
+. 
+. global workpath   "$stata\DO-FILES"
+
+. global datapath   "$stata\DTA-FILES"
+
+. global output     "$stata\OUTPUT"
+
+. global xls        "$stata\XLS-FILES"
+
+. 
+. global datasource "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\2_Raw Data\DTA-FILES"
+
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. /* Only needs to be run once
+> cd "$datapath"
+> shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+> */
+. 
+. 
+. *ssc install geo2xy
+. *use "geo2xy_Canada_coor.dta", clear // apparently makes it look better
+. 
+. 
+. use "$datapath\world_db" , clear
+
+. rename name country_home
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn 
+> Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis\data\delegat
+> es_analysis_complete"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. /* Only needs to be run once
+> cd "$datapath"
+> shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+> */
+. *ssc install geo2xy
+. *use "geo2xy_Canada_coor.dta", clear // apparently makes it look better
+. 
+. *preserve
+. use "$datapath\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$datapath\delegates_final.dta" // countries need
+>  adjustment
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+(note: variable id was int, now float to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            99
+        from master                        99  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               277  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(277 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(99 real changes made, 99 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+File world_co.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *--------------------------------------------------
+. * representativeness.do
+. * START: 2022-03-07
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *************************************
+. ********** GENERELLE INFOS **********
+. *************************************
+. /*
+> 
+>         
+> */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. * Max (work)
+. global workpath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DO-FILES"
+
+. global datasource "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\2_Raw Data\DTA-FILES"
+
+. global datapath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DTA-FILES"
+
+. global output     "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\OUTPUT"
+
+. global xls        "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\\XLS-FILES"
+
+. */
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. *--------------
+. * 1) Import Participants of the COP
+. *------------
+. import excel "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Su
+> stUse\Donia_Delegates\8_Submission\NSUST\Submission 3 (Revision)\Provisional l
+> ist delegates_COP24.xlsx", sheet("Sheet1") firstrow case(lower) clear
+(15 vars, 7,845 obs)
+
+. drop i j k l m n o 
+
+. 
+. 
+. 
+. *----------------
+. * 2) Classify COP24 participants 
+. *---------------------
+. 
+. * Male / Female
+. replace title = trim(title)
+(710 real changes made)
+
+. gen female = .
+(7,845 missing values generated)
+
+. replace female = 0 if title == "H.E. Mr"
+(3 real changes made)
+
+. replace female = 0 if title == "H.E. Mr."
+(185 real changes made)
+
+. replace female = 1 if title == "H.E. Ms-"
+(1 real change made)
+
+. replace female = 1 if title == "H.E. Ms."
+(48 real changes made)
+
+. replace female = 0 if title == "H.E.Mr."
+(65 real changes made)
+
+. replace female = 1 if title == "H.E.Ms."
+(25 real changes made)
+
+. replace female = 0 if title == "H.E:Mr."
+(1 real change made)
+
+. replace female = 0 if title == "H.R.Mr."
+(1 real change made)
+
+. replace female = 0 if title == "Issa"
+(1 real change made)
+
+. replace female = 0 if title == "M"
+(4 real changes made)
+
+. replace female = 0 if title == "M."
+(258 real changes made)
+
+. replace female = 1 if title == "Mme"
+(270 real changes made)
+
+. replace female = 1 if title == "Mme."
+(40 real changes made)
+
+. replace female = 0 if title == "Mr"
+(270 real changes made)
+
+. replace female = 0 if title == "Mr,"
+(2 real changes made)
+
+. replace female = 0 if title == "Mr."
+(4,149 real changes made)
+
+. replace female = 1 if title == "Mrs."
+(1 real change made)
+
+. replace female = 1 if title == "Ms"
+(174 real changes made)
+
+. replace female = 1 if title == "Ms,"
+(1 real change made)
+
+. replace female = 1 if title == "Ms."
+(2,110 real changes made)
+
+. replace female = 1 if title == "Ms. Dr."
+(2 real changes made)
+
+. replace female = 0 if title == "S.E. M."
+(15 real changes made)
+
+. replace female = 1 if title == "S.E. Mme"
+(5 real changes made)
+
+. replace female = 0 if title == "S.E. Sr."
+(4 real changes made)
+
+. replace female = 1 if title == "S.E. Sra"
+(1 real change made)
+
+. replace female = 1 if title == "S.E. Sra."
+(3 real changes made)
+
+. replace female = 0 if title == "S.E.M."
+(6 real changes made)
+
+. replace female = 0 if title == "S.E.Sr."
+(6 real changes made)
+
+. replace female = 0 if title == "Sr."
+(112 real changes made)
+
+. replace female = 1 if title == "Sra."
+(81 real changes made)
+
+. 
+. lab define female1 0 "male" 1 "female"
+
+. lab val female female1
+
+. lab var female "Female"
+
+. 
+. 
+. 
+. * Governmental or Non-governmental actors
+. gen non_gov = 99
+
+. replace non_gov = 0 if governmental_nongovernmental == "G"
+(5,234 real changes made)
+
+. replace non_gov = 1 if governmental_nongovernmental == "N"
+(1,794 real changes made)
+
+. lab define non_gov 0 "Governmental" 1 "Non-Governmental" 99 "Not specified"
+
+. lab val non_gov non_gov
+
+. lab var non_gov "Non-governmental actor"
+
+. 
+. 
+. 
+. 
+. 
+. * Assign countries to continents
+. replace country = trim(country)
+(51 real changes made)
+
+. gen continent = ""
+(7,845 missing values generated)
+
+. 
+. ***Africa
+. replace continent = "Africa" if country == "Algeria"
+variable continent was str1 now str6
+(22 real changes made)
+
+. replace continent = "Africa" if country == "Angola"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Benin"
+(152 real changes made)
+
+. replace continent = "Africa" if country == "Botswana"
+(53 real changes made)
+
+. replace continent = "Africa" if country == "Burkina Faso"
+(90 real changes made)
+
+. replace continent = "Africa" if country == "Burundi"
+(12 real changes made)
+
+. replace continent = "Africa" if country == "Cabo Verde"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Cameroon"
+(39 real changes made)
+
+. replace continent = "Africa" if country == "Central African Republic"
+(36 real changes made)
+
+. replace continent = "Africa" if country == "Chad"
+(57 real changes made)
+
+. replace continent = "Africa" if country == "Comoros"
+(76 real changes made)
+
+. replace continent = "Africa" if country == "Congo"
+(164 real changes made)
+
+. replace continent = "Africa" if country == "Dem. Rep.of Congo"
+(234 real changes made)
+
+. replace continent = "Africa" if country == "Djibouti"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Egypt"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Equatorial Guinea"
+(24 real changes made)
+
+. replace continent = "Africa" if country == "Eritrea"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Eswatini"
+(8 real changes made)
+
+. replace continent = "Africa" if country == "Ethiopia"
+(42 real changes made)
+
+. replace continent = "Africa" if country == "Gabon"
+(21 real changes made)
+
+. replace continent = "Africa" if country == "Gambia"
+(93 real changes made)
+
+. replace continent = "Africa" if country == "Ghana"
+(111 real changes made)
+
+. replace continent = "Africa" if country == "Guinea"
+(404 real changes made)
+
+. replace continent = "Africa" if country == "Guinea-Bissau" | country == "Guine
+> a- Bissau"
+(14 real changes made)
+
+. replace continent = "Africa" if country == "Côte d´Ivoire"
+(208 real changes made)
+
+. replace continent = "Africa" if country == "Kenya"
+(71 real changes made)
+
+. replace continent = "Africa" if country == "Lesotho"
+(17 real changes made)
+
+. replace continent = "Africa" if country == "Liberia"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Libya"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Madagascar"
+(86 real changes made)
+
+. replace continent = "Africa" if country == "Malawi"
+(23 real changes made)
+
+. replace continent = "Africa" if country == "Mali"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Mauritania"
+(37 real changes made)
+
+. replace continent = "Africa" if country == "Mauritius"
+(10 real changes made)
+
+. replace continent = "Africa" if country == "Morocco"
+(104 real changes made)
+
+. replace continent = "Africa" if country == "Mozambique"
+(29 real changes made)
+
+. replace continent = "Africa" if country == "Namibia"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "Niger"
+(54 real changes made)
+
+. replace continent = "Africa" if country == "Nigeria"
+(141 real changes made)
+
+. replace continent = "Africa" if country == "Rwanda"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sao Tome and Principe"
+(4 real changes made)
+
+. replace continent = "Africa" if country == "Senegal"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Seychelles"
+(46 real changes made)
+
+. replace continent = "Africa" if country == "Sierra Leone"
+(32 real changes made)
+
+. replace continent = "Africa" if country == "Somalia"
+(7 real changes made)
+
+. replace continent = "Africa" if country == "South Africa"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "South Sudan"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sudan"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Tanzania"
+(31 real changes made)
+
+. replace continent = "Africa" if country == "Togo"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Tunisia"
+(40 real changes made)
+
+. replace continent = "Africa" if country == "Uganda"
+(61 real changes made)
+
+. replace continent = "Africa" if country == "Zambia"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Zimbabwe"
+(86 real changes made)
+
+. 
+. ***Asia
+. replace continent = "Asia" if country == "Afghanistan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Armenia"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Azerbaijan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Bahrain"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Bangladesh"
+(83 real changes made)
+
+. replace continent = "Asia" if country == "Bhutan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "British Indian Ocean Territory (UK t
+> erritory)"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Brunei Darussalam"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Cambodia"
+(32 real changes made)
+
+. replace continent = "Asia" if country == "China" | country == "China, Hong Kon
+> g SAR" | country == "China, Macao SAR" | country == "China, Taiwan Province of
+> "
+(89 real changes made)
+
+. replace continent = "Asia" if country == "Georgia"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Hong Kong"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "India"
+(35 real changes made)
+
+. replace continent = "Asia" if country == "Indonesia"
+(191 real changes made)
+
+. replace continent = "Asia" if country == "Iran"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Iraq"
+(51 real changes made)
+
+. replace continent = "Asia" if country == "Israel"
+(13 real changes made)
+
+. replace continent = "Asia" if country == "Japan"
+(116 real changes made)
+
+. replace continent = "Asia" if country == "Jordan"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Kazakhstan"
+(27 real changes made)
+
+. replace continent = "Asia" if country == "Kuwait"
+(29 real changes made)
+
+. replace continent = "Asia" if country == "Kyrgyzstan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Lao People's Democratic Republic"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Lebanon"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Macau"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Malaysia"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Maldives"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Mongolia"
+(20 real changes made)
+
+. replace continent = "Asia" if country == "Myanmar"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Nepal"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "North Korea"
+(3 real changes made)
+
+. replace continent = "Asia" if country == "Oman"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Pakistan"
+(17 real changes made)
+
+. replace continent = "Asia" if country == "Palestine"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Phillipines"
+(28 real changes made)
+
+. replace continent = "Asia" if country == "Qatar"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "Saudi Arabia"
+(37 real changes made)
+
+. replace continent = "Asia" if country == "Singapore"
+(30 real changes made)
+
+. replace continent = "Asia" if country == "Republic of Korea"
+(80 real changes made)
+
+. replace continent = "Asia" if country == "Sri Lanka"
+(14 real changes made)
+
+. replace continent = "Asia" if country == "Syrian Arab Republic"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Taiwan"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Tajikistan"
+(10 real changes made)
+
+. replace continent = "Asia" if country == "Thailand"
+(73 real changes made)
+
+. replace continent = "Asia" if country == "Timor Leste"
+(21 real changes made)
+
+. replace continent = "Asia" if country == "Turkmenistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "United Arab Emirates"
+(72 real changes made)
+
+. replace continent = "Asia" if country == "Uzbekistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Vietnam"
+(44 real changes made)
+
+. replace continent = "Asia" if country == "Yemen"
+(10 real changes made)
+
+. 
+. ***Europe
+. replace continent = "Europe" if country == "Albania"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Andorra"
+(5 real changes made)
+
+. replace continent = "Europe" if country == "Austria"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Belarus"
+(7 real changes made)
+
+. replace continent = "Europe" if country == "Belgium"
+(29 real changes made)
+
+. replace continent = "Europe" if country == "Bosnia and Herzegovina"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Bulgaria"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Croatia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Cyprus"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Czech Republic"
+(26 real changes made)
+
+. replace continent = "Europe" if country == "Denmark"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Estonia"
+(24 real changes made)
+
+. replace continent = "Europe" if country == "Finland"
+(51 real changes made)
+
+. replace continent = "Europe" if country == "France"
+(170 real changes made)
+
+. replace continent = "Europe" if country == "Germany"
+(153 real changes made)
+
+. replace continent = "Europe" if country == "Greece"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Hungary"
+(22 real changes made)
+
+. replace continent = "Europe" if country == "Iceland"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Ireland"
+(33 real changes made)
+
+. replace continent = "Europe" if country == "Italy"
+(49 real changes made)
+
+. replace continent = "Europe" if country == "Latvia"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Liechtenstein"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Lithuania"
+(27 real changes made)
+
+. replace continent = "Europe" if country == "Luxembourg"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Malta"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Moldova"
+(11 real changes made)
+
+. replace continent = "Europe" if country == "Monaco"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Montenegro"
+(17 real changes made)
+
+. replace continent = "Europe" if country == "Netherlands"
+(40 real changes made)
+
+. replace continent = "Europe" if country == "Macedonia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Norway"
+(36 real changes made)
+
+. replace continent = "Europe" if country == "Poland"
+(210 real changes made)
+
+. replace continent = "Europe" if country == "Portugal"
+(31 real changes made)
+
+. replace continent = "Europe" if country == "Romania"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Russia"
+(54 real changes made)
+
+. replace continent = "Europe" if country == "San Marino"
+(3 real changes made)
+
+. replace continent = "Europe" if country == "Serbia"
+(23 real changes made)
+
+. replace continent = "Europe" if country == "Slovakia"
+(38 real changes made)
+
+. replace continent = "Europe" if country == "Slovenia"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Spain"
+(46 real changes made)
+
+. replace continent = "Europe" if country == "Sweden"
+(42 real changes made)
+
+. replace continent = "Europe" if country == "Switzerland"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Turkey"
+(81 real changes made)
+
+. replace continent = "Europe" if country == "Ukraine"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "United Kingdom"
+(52 real changes made)
+
+. replace continent = "Europe" if country == "Holy See"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "European Union"
+(83 real changes made)
+
+. 
+. 
+. 
+. 
+. 
+. ***North America
+. replace continent = "North America" if country == "Antigua and Barbuda"
+variable continent was str6 now str13
+(5 real changes made)
+
+. replace continent = "North America" if country == "Bahamas"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Barbados"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Belize"
+(17 real changes made)
+
+. replace continent = "North America" if country == "Canada"
+(126 real changes made)
+
+. replace continent = "North America" if country == "Costa Rica"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Cuba"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Dominica"
+(5 real changes made)
+
+. replace continent = "North America" if country == "Dominican Republic"
+(35 real changes made)
+
+. replace continent = "North America" if country == "El Salvador"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Grenada"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Guatemala"
+(25 real changes made)
+
+. replace continent = "North America" if country == "Haiti"
+(12 real changes made)
+
+. replace continent = "North America" if country == "Honduras"
+(54 real changes made)
+
+. replace continent = "North America" if country == "Jamaica"
+(13 real changes made)
+
+. replace continent = "North America" if country == "Mexiko"
+(32 real changes made)
+
+. replace continent = "North America" if country == "Nicaragua"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Panama"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Saint Kitts and Nevis"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Saint Lucia"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Saint Vincent and the Grena
+> dines"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Trinidad and Tobago"
+(0 real changes made)
+
+. replace continent = "North America" if country == "USA"
+(44 real changes made)
+
+. 
+. *** South America
+. replace continent = "South America" if country == "Argentina"
+(11 real changes made)
+
+. replace continent = "South America" if country == "Bolivia"
+(20 real changes made)
+
+. replace continent = "South America" if country == "Brazil"
+(107 real changes made)
+
+. replace continent = "South America" if country == "Chile"
+(31 real changes made)
+
+. replace continent = "South America" if country == "Colombia"
+(17 real changes made)
+
+. replace continent = "South America" if country == "Ecuador"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Guyana"
+(4 real changes made)
+
+. replace continent = "South America" if country == "Paraguay"
+(30 real changes made)
+
+. replace continent = "South America" if country == "Peru"
+(29 real changes made)
+
+. replace continent = "South America" if country == "Suriname"
+(15 real changes made)
+
+. replace continent = "South America" if country == "Uruguay"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Venezuela"
+(14 real changes made)
+
+. 
+. *** Oceania
+. replace continent = "Oceania" if country == "Australia"
+(30 real changes made)
+
+. replace continent = "Oceania" if country == "Fiji"
+(60 real changes made)
+
+. replace continent = "Oceania" if country == "Kiribati"
+(20 real changes made)
+
+. replace continent = "Oceania" if country == "Marshall Islands"
+(28 real changes made)
+
+. replace continent = "Oceania" if country == "Micronesia"
+(18 real changes made)
+
+. replace continent = "Oceania" if country == "Nauru"
+(14 real changes made)
+
+. replace continent = "Oceania" if country == "New Zealand"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Palau"
+(4 real changes made)
+
+. replace continent = "Oceania" if country == "Papua New Guinea"
+(19 real changes made)
+
+. replace continent = "Oceania" if country == "American Samoa"
+(0 real changes made)
+
+. replace continent = "Oceania" if country == "Solomon Islands"
+(22 real changes made)
+
+. replace continent = "Oceania" if country == "Tonga"
+(26 real changes made)
+
+. replace continent = "Oceania" if country == "Tuvalu"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Vanuatu"
+(23 real changes made)
+
+. replace continent = "Oceania" if country == "Cook islands"
+(11 real changes made)
+
+. replace continent = "Oceania" if country == "Niue"
+(5 real changes made)
+
+. 
+. lab def conti 1 "Africa" 2 "Asia" 3 "Europe" 4 "North America" 5 "South Americ
+> a" 6 "Oceania", replace
+
+. encode continent, gen(continent2) lab(conti)
+
+. drop continent
+
+. rename continent2 continent
+
+. lab var continent "Continent"
+
+. 
+. 
+. 
+. ** Add classificatoin as Global North/South
+. rename country country_home
+
+. merge m:1 country_home using "$datapath\development"
+(note: variable country_home was str32, now str87 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           169
+        from master                       106  (_merge==1)
+        from using                         63  (_merge==2)
+
+    matched                             7,739  (_merge==3)
+    -----------------------------------------
+
+. ed country_home if _merge == 1
+
+. replace global_south = 0 if country_home == "European Union" | country_home ==
+>  "Monaco"
+(103 real changes made)
+
+. replace global_south = 1 if country_home == "North Korea"
+(3 real changes made)
+
+. drop _merge
+
+. 
+. 
+. * Drop
+. drop numtotal nuncountry governmental_nongovernmental
+
+. 
+. *--- SAVE ---*
+. save "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta not found
+> )
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia
+> _Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+.  
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *--------------------------------------------------
+. * representativeness.do
+. * START: 2022-03-07
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *************************************
+. ********** GENERELLE INFOS **********
+. *************************************
+. /*
+> 
+>         
+> */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. * Max (work)
+. global workpath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DO-FILES"
+
+. global datasource "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\2_Raw Data\DTA-FILES"
+
+. global datapath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DTA-FILES"
+
+. global output     "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\OUTPUT"
+
+. global xls        "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\\XLS-FILES"
+
+. */
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. *--------------
+. * 1) Import Participants of the COP
+. *------------
+. import excel "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Su
+> stUse\Donia_Delegates\8_Submission\NSUST\Submission 3 (Revision)\Provisional l
+> ist delegates_COP24.xlsx", sheet("Sheet1") firstrow case(lower) clear
+(15 vars, 7,845 obs)
+
+. drop i j k l m n o 
+
+. 
+. 
+. 
+. *----------------
+. * 2) Classify COP24 participants 
+. *---------------------
+. 
+. * Male / Female
+. replace title = trim(title)
+(710 real changes made)
+
+. gen female = .
+(7,845 missing values generated)
+
+. replace female = 0 if title == "H.E. Mr"
+(3 real changes made)
+
+. replace female = 0 if title == "H.E. Mr."
+(185 real changes made)
+
+. replace female = 1 if title == "H.E. Ms-"
+(1 real change made)
+
+. replace female = 1 if title == "H.E. Ms."
+(48 real changes made)
+
+. replace female = 0 if title == "H.E.Mr."
+(65 real changes made)
+
+. replace female = 1 if title == "H.E.Ms."
+(25 real changes made)
+
+. replace female = 0 if title == "H.E:Mr."
+(1 real change made)
+
+. replace female = 0 if title == "H.R.Mr."
+(1 real change made)
+
+. replace female = 0 if title == "Issa"
+(1 real change made)
+
+. replace female = 0 if title == "M"
+(4 real changes made)
+
+. replace female = 0 if title == "M."
+(258 real changes made)
+
+. replace female = 1 if title == "Mme"
+(270 real changes made)
+
+. replace female = 1 if title == "Mme."
+(40 real changes made)
+
+. replace female = 0 if title == "Mr"
+(270 real changes made)
+
+. replace female = 0 if title == "Mr,"
+(2 real changes made)
+
+. replace female = 0 if title == "Mr."
+(4,149 real changes made)
+
+. replace female = 1 if title == "Mrs."
+(1 real change made)
+
+. replace female = 1 if title == "Ms"
+(174 real changes made)
+
+. replace female = 1 if title == "Ms,"
+(1 real change made)
+
+. replace female = 1 if title == "Ms."
+(2,110 real changes made)
+
+. replace female = 1 if title == "Ms. Dr."
+(2 real changes made)
+
+. replace female = 0 if title == "S.E. M."
+(15 real changes made)
+
+. replace female = 1 if title == "S.E. Mme"
+(5 real changes made)
+
+. replace female = 0 if title == "S.E. Sr."
+(4 real changes made)
+
+. replace female = 1 if title == "S.E. Sra"
+(1 real change made)
+
+. replace female = 1 if title == "S.E. Sra."
+(3 real changes made)
+
+. replace female = 0 if title == "S.E.M."
+(6 real changes made)
+
+. replace female = 0 if title == "S.E.Sr."
+(6 real changes made)
+
+. replace female = 0 if title == "Sr."
+(112 real changes made)
+
+. replace female = 1 if title == "Sra."
+(81 real changes made)
+
+. 
+. lab define female1 0 "male" 1 "female"
+
+. lab val female female1
+
+. lab var female "Female"
+
+. 
+. 
+. 
+. * Governmental or Non-governmental actors
+. gen non_gov = 99
+
+. replace non_gov = 0 if governmental_nongovernmental == "G"
+(5,234 real changes made)
+
+. replace non_gov = 1 if governmental_nongovernmental == "N"
+(1,794 real changes made)
+
+. lab define non_gov 0 "Governmental" 1 "Non-Governmental" 99 "Not specified"
+
+. lab val non_gov non_gov
+
+. lab var non_gov "Non-governmental actor"
+
+. 
+. 
+. 
+. 
+. 
+. * Assign countries to continents
+. replace country = trim(country)
+(51 real changes made)
+
+. gen continent = ""
+(7,845 missing values generated)
+
+. 
+. ***Africa
+. replace continent = "Africa" if country == "Algeria"
+variable continent was str1 now str6
+(22 real changes made)
+
+. replace continent = "Africa" if country == "Angola"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Benin"
+(152 real changes made)
+
+. replace continent = "Africa" if country == "Botswana"
+(53 real changes made)
+
+. replace continent = "Africa" if country == "Burkina Faso"
+(90 real changes made)
+
+. replace continent = "Africa" if country == "Burundi"
+(12 real changes made)
+
+. replace continent = "Africa" if country == "Cabo Verde"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Cameroon"
+(39 real changes made)
+
+. replace continent = "Africa" if country == "Central African Republic"
+(36 real changes made)
+
+. replace continent = "Africa" if country == "Chad"
+(57 real changes made)
+
+. replace continent = "Africa" if country == "Comoros"
+(76 real changes made)
+
+. replace continent = "Africa" if country == "Congo"
+(164 real changes made)
+
+. replace continent = "Africa" if country == "Dem. Rep.of Congo"
+(234 real changes made)
+
+. replace continent = "Africa" if country == "Djibouti"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Egypt"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Equatorial Guinea"
+(24 real changes made)
+
+. replace continent = "Africa" if country == "Eritrea"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Eswatini"
+(8 real changes made)
+
+. replace continent = "Africa" if country == "Ethiopia"
+(42 real changes made)
+
+. replace continent = "Africa" if country == "Gabon"
+(21 real changes made)
+
+. replace continent = "Africa" if country == "Gambia"
+(93 real changes made)
+
+. replace continent = "Africa" if country == "Ghana"
+(111 real changes made)
+
+. replace continent = "Africa" if country == "Guinea"
+(404 real changes made)
+
+. replace continent = "Africa" if country == "Guinea-Bissau" | country == "Guine
+> a- Bissau"
+(14 real changes made)
+
+. replace continent = "Africa" if country == "Côte d´Ivoire"
+(208 real changes made)
+
+. replace continent = "Africa" if country == "Kenya"
+(71 real changes made)
+
+. replace continent = "Africa" if country == "Lesotho"
+(17 real changes made)
+
+. replace continent = "Africa" if country == "Liberia"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Libya"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Madagascar"
+(86 real changes made)
+
+. replace continent = "Africa" if country == "Malawi"
+(23 real changes made)
+
+. replace continent = "Africa" if country == "Mali"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Mauritania"
+(37 real changes made)
+
+. replace continent = "Africa" if country == "Mauritius"
+(10 real changes made)
+
+. replace continent = "Africa" if country == "Morocco"
+(104 real changes made)
+
+. replace continent = "Africa" if country == "Mozambique"
+(29 real changes made)
+
+. replace continent = "Africa" if country == "Namibia"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "Niger"
+(54 real changes made)
+
+. replace continent = "Africa" if country == "Nigeria"
+(141 real changes made)
+
+. replace continent = "Africa" if country == "Rwanda"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sao Tome and Principe"
+(4 real changes made)
+
+. replace continent = "Africa" if country == "Senegal"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Seychelles"
+(46 real changes made)
+
+. replace continent = "Africa" if country == "Sierra Leone"
+(32 real changes made)
+
+. replace continent = "Africa" if country == "Somalia"
+(7 real changes made)
+
+. replace continent = "Africa" if country == "South Africa"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "South Sudan"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sudan"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Tanzania"
+(31 real changes made)
+
+. replace continent = "Africa" if country == "Togo"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Tunisia"
+(40 real changes made)
+
+. replace continent = "Africa" if country == "Uganda"
+(61 real changes made)
+
+. replace continent = "Africa" if country == "Zambia"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Zimbabwe"
+(86 real changes made)
+
+. 
+. ***Asia
+. replace continent = "Asia" if country == "Afghanistan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Armenia"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Azerbaijan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Bahrain"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Bangladesh"
+(83 real changes made)
+
+. replace continent = "Asia" if country == "Bhutan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "British Indian Ocean Territory (UK t
+> erritory)"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Brunei Darussalam"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Cambodia"
+(32 real changes made)
+
+. replace continent = "Asia" if country == "China" | country == "China, Hong Kon
+> g SAR" | country == "China, Macao SAR" | country == "China, Taiwan Province of
+> "
+(89 real changes made)
+
+. replace continent = "Asia" if country == "Georgia"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Hong Kong"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "India"
+(35 real changes made)
+
+. replace continent = "Asia" if country == "Indonesia"
+(191 real changes made)
+
+. replace continent = "Asia" if country == "Iran"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Iraq"
+(51 real changes made)
+
+. replace continent = "Asia" if country == "Israel"
+(13 real changes made)
+
+. replace continent = "Asia" if country == "Japan"
+(116 real changes made)
+
+. replace continent = "Asia" if country == "Jordan"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Kazakhstan"
+(27 real changes made)
+
+. replace continent = "Asia" if country == "Kuwait"
+(29 real changes made)
+
+. replace continent = "Asia" if country == "Kyrgyzstan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Lao People's Democratic Republic"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Lebanon"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Macau"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Malaysia"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Maldives"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Mongolia"
+(20 real changes made)
+
+. replace continent = "Asia" if country == "Myanmar"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Nepal"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "North Korea"
+(3 real changes made)
+
+. replace continent = "Asia" if country == "Oman"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Pakistan"
+(17 real changes made)
+
+. replace continent = "Asia" if country == "Palestine"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Phillipines"
+(28 real changes made)
+
+. replace continent = "Asia" if country == "Qatar"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "Saudi Arabia"
+(37 real changes made)
+
+. replace continent = "Asia" if country == "Singapore"
+(30 real changes made)
+
+. replace continent = "Asia" if country == "Republic of Korea"
+(80 real changes made)
+
+. replace continent = "Asia" if country == "Sri Lanka"
+(14 real changes made)
+
+. replace continent = "Asia" if country == "Syrian Arab Republic"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Taiwan"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Tajikistan"
+(10 real changes made)
+
+. replace continent = "Asia" if country == "Thailand"
+(73 real changes made)
+
+. replace continent = "Asia" if country == "Timor Leste"
+(21 real changes made)
+
+. replace continent = "Asia" if country == "Turkmenistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "United Arab Emirates"
+(72 real changes made)
+
+. replace continent = "Asia" if country == "Uzbekistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Vietnam"
+(44 real changes made)
+
+. replace continent = "Asia" if country == "Yemen"
+(10 real changes made)
+
+. 
+. ***Europe
+. replace continent = "Europe" if country == "Albania"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Andorra"
+(5 real changes made)
+
+. replace continent = "Europe" if country == "Austria"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Belarus"
+(7 real changes made)
+
+. replace continent = "Europe" if country == "Belgium"
+(29 real changes made)
+
+. replace continent = "Europe" if country == "Bosnia and Herzegovina"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Bulgaria"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Croatia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Cyprus"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Czech Republic"
+(26 real changes made)
+
+. replace continent = "Europe" if country == "Denmark"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Estonia"
+(24 real changes made)
+
+. replace continent = "Europe" if country == "Finland"
+(51 real changes made)
+
+. replace continent = "Europe" if country == "France"
+(170 real changes made)
+
+. replace continent = "Europe" if country == "Germany"
+(153 real changes made)
+
+. replace continent = "Europe" if country == "Greece"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Hungary"
+(22 real changes made)
+
+. replace continent = "Europe" if country == "Iceland"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Ireland"
+(33 real changes made)
+
+. replace continent = "Europe" if country == "Italy"
+(49 real changes made)
+
+. replace continent = "Europe" if country == "Latvia"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Liechtenstein"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Lithuania"
+(27 real changes made)
+
+. replace continent = "Europe" if country == "Luxembourg"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Malta"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Moldova"
+(11 real changes made)
+
+. replace continent = "Europe" if country == "Monaco"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Montenegro"
+(17 real changes made)
+
+. replace continent = "Europe" if country == "Netherlands"
+(40 real changes made)
+
+. replace continent = "Europe" if country == "Macedonia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Norway"
+(36 real changes made)
+
+. replace continent = "Europe" if country == "Poland"
+(210 real changes made)
+
+. replace continent = "Europe" if country == "Portugal"
+(31 real changes made)
+
+. replace continent = "Europe" if country == "Romania"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Russia"
+(54 real changes made)
+
+. replace continent = "Europe" if country == "San Marino"
+(3 real changes made)
+
+. replace continent = "Europe" if country == "Serbia"
+(23 real changes made)
+
+. replace continent = "Europe" if country == "Slovakia"
+(38 real changes made)
+
+. replace continent = "Europe" if country == "Slovenia"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Spain"
+(46 real changes made)
+
+. replace continent = "Europe" if country == "Sweden"
+(42 real changes made)
+
+. replace continent = "Europe" if country == "Switzerland"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Turkey"
+(81 real changes made)
+
+. replace continent = "Europe" if country == "Ukraine"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "United Kingdom"
+(52 real changes made)
+
+. replace continent = "Europe" if country == "Holy See"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "European Union"
+(83 real changes made)
+
+. 
+. 
+. 
+. 
+. 
+. ***North America
+. replace continent = "North America" if country == "Antigua and Barbuda"
+variable continent was str6 now str13
+(5 real changes made)
+
+. replace continent = "North America" if country == "Bahamas"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Barbados"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Belize"
+(17 real changes made)
+
+. replace continent = "North America" if country == "Canada"
+(126 real changes made)
+
+. replace continent = "North America" if country == "Costa Rica"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Cuba"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Dominica"
+(5 real changes made)
+
+. replace continent = "North America" if country == "Dominican Republic"
+(35 real changes made)
+
+. replace continent = "North America" if country == "El Salvador"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Grenada"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Guatemala"
+(25 real changes made)
+
+. replace continent = "North America" if country == "Haiti"
+(12 real changes made)
+
+. replace continent = "North America" if country == "Honduras"
+(54 real changes made)
+
+. replace continent = "North America" if country == "Jamaica"
+(13 real changes made)
+
+. replace continent = "North America" if country == "Mexiko"
+(32 real changes made)
+
+. replace continent = "North America" if country == "Nicaragua"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Panama"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Saint Kitts and Nevis"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Saint Lucia"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Saint Vincent and the Grena
+> dines"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Trinidad and Tobago"
+(0 real changes made)
+
+. replace continent = "North America" if country == "USA"
+(44 real changes made)
+
+. 
+. *** South America
+. replace continent = "South America" if country == "Argentina"
+(11 real changes made)
+
+. replace continent = "South America" if country == "Bolivia"
+(20 real changes made)
+
+. replace continent = "South America" if country == "Brazil"
+(107 real changes made)
+
+. replace continent = "South America" if country == "Chile"
+(31 real changes made)
+
+. replace continent = "South America" if country == "Colombia"
+(17 real changes made)
+
+. replace continent = "South America" if country == "Ecuador"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Guyana"
+(4 real changes made)
+
+. replace continent = "South America" if country == "Paraguay"
+(30 real changes made)
+
+. replace continent = "South America" if country == "Peru"
+(29 real changes made)
+
+. replace continent = "South America" if country == "Suriname"
+(15 real changes made)
+
+. replace continent = "South America" if country == "Uruguay"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Venezuela"
+(14 real changes made)
+
+. 
+. *** Oceania
+. replace continent = "Oceania" if country == "Australia"
+(30 real changes made)
+
+. replace continent = "Oceania" if country == "Fiji"
+(60 real changes made)
+
+. replace continent = "Oceania" if country == "Kiribati"
+(20 real changes made)
+
+. replace continent = "Oceania" if country == "Marshall Islands"
+(28 real changes made)
+
+. replace continent = "Oceania" if country == "Micronesia"
+(18 real changes made)
+
+. replace continent = "Oceania" if country == "Nauru"
+(14 real changes made)
+
+. replace continent = "Oceania" if country == "New Zealand"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Palau"
+(4 real changes made)
+
+. replace continent = "Oceania" if country == "Papua New Guinea"
+(19 real changes made)
+
+. replace continent = "Oceania" if country == "American Samoa"
+(0 real changes made)
+
+. replace continent = "Oceania" if country == "Solomon Islands"
+(22 real changes made)
+
+. replace continent = "Oceania" if country == "Tonga"
+(26 real changes made)
+
+. replace continent = "Oceania" if country == "Tuvalu"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Vanuatu"
+(23 real changes made)
+
+. replace continent = "Oceania" if country == "Cook islands"
+(11 real changes made)
+
+. replace continent = "Oceania" if country == "Niue"
+(5 real changes made)
+
+. 
+. lab def conti 1 "Africa" 2 "Asia" 3 "Europe" 4 "North America" 5 "South Americ
+> a" 6 "Oceania", replace
+
+. encode continent, gen(continent2) lab(conti)
+
+. drop continent
+
+. rename continent2 continent
+
+. lab var continent "Continent"
+
+. 
+. 
+. 
+. ** Add classificatoin as Global North/South
+. rename country country_home
+
+. merge m:1 country_home using "$datapath\development"
+(note: variable country_home was str32, now str87 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           169
+        from master                       106  (_merge==1)
+        from using                         63  (_merge==2)
+
+    matched                             7,739  (_merge==3)
+    -----------------------------------------
+
+. ed country_home if _merge == 1
+
+. replace global_south = 0 if country_home == "European Union" | country_home ==
+>  "Monaco"
+(103 real changes made)
+
+. replace global_south = 1 if country_home == "North Korea"
+(3 real changes made)
+
+. drop _merge
+
+. lab var global_south "Participant from country defined by World Bank as Global
+>  South"
+
+. 
+. 
+. * Drop
+. drop numtotal nuncountry governmental_nongovernmental
+
+. 
+. *--- SAVE ---*
+. save "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta", replace
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia
+> _Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+.  
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. /* Only needs to be run once
+> cd "$datapath"
+> shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+> */
+. *ssc install geo2xy
+. *use "geo2xy_Canada_coor.dta", clear // apparently makes it look better
+. 
+. *preserve
+. use "$datapath\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$datapath\delegates_final.dta" // countries need
+>  adjustment
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            99
+        from master                        99  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               277  (_merge==3)
+    -----------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. cd "$working_ANALYSIS\data"
+unable to change to \data
+r(170);
+
+end of do-file
+
+r(170);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. * Only needs to be run once
+. cd "$working_ANALYSIS\data"
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis\data
+
+. shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+file country.shp not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. * Only needs to be run once
+. cd "$working_ANALYSIS\data"
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis\data
+
+. shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+type: 5
+file world_db.dta already exists
+r(602);
+
+end of do-file
+
+r(602);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. * Only needs to be run once
+. cd "$working_ANALYSIS\data"
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis\data
+
+. shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+type: 5
+
+. ssc install geo2xy
+checking geo2xy consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. use "geo2xy_Canada_coor.dta", clear // apparently makes it look better
+file geo2xy_Canada_coor.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$output\map_participation", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\map_participation.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. * B. Our sample by North/South
+. use "$datapath\delegates_analysis_complete.dta", clear
+file C:\Users\Max Burger\Google
+    Drive\Promotion\Projects\Donia_Delegates\4_Carbon_Prices\STATA\DTA-FILES\d
+    > elegates_analysis_complete.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. mylabels 0(10)50, myscale(@) local(pctlabel) suffix("%")
+0 "0%" 10 "10%" 20 "20%" 30 "30%" 40 "40%" 50 "50%"
+
+. catplot global_south, percent asyvar yla(`pctlabel', nogrid)  title("{bf:b }",
+>  size(15pt) span pos(11)) bargap(30) blabel(bar, size(medium) format(%9.0f) po
+> s(center)) l1title("")  b1title("") legend(rows(2) pos(6) ring(1) size()) //  
+
+. gr save "$output\parties_sample.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\parties_sample.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. use "$working_ANALYSIS\data\cop24_parties.dta", clear
+
+. mylabels 0(10)50, myscale(@) local(pctlabel) suffix("%")
+0 "0%" 10 "10%" 20 "20%" 30 "30%" 40 "40%" 50 "50%"
+
+. catplot continent, percent asyvar yla(`pctlabel', nogrid)  title("{bf:C } Dist
+> ribtuion in COP 24", size(15pt) span pos(11)) bargap(30) blabel(bar, size(medi
+> um)  format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(2) pos(6)
+>  ring(1) size()) //  
+
+. gr save "$output\parties_COP.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\parties_COP.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. use "$working_ANALYSIS\data\cop24_parties.dta", clear
+
+. mylabels 0(10)50, myscale(@) local(pctlabel) suffix("%")
+0 "0%" 10 "10%" 20 "20%" 30 "30%" 40 "40%" 50 "50%"
+
+. catplot global_south, percent asyvar yla(`pctlabel', nogrid)  title("{bf:C } D
+> istribtuion in COP 24", size(15pt) span pos(11)) bargap(30) blabel(bar, size(m
+> edium)  format(%9.0f) pos(center)) l1title("")  b1title("") legend(rows(2) pos
+> (6) ring(1) size()) //  
+
+. gr save "$output\parties_COP.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\parties_COP.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. * B. Our sample by North/South
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. mylabels 0(10)50, myscale(@) local(pctlabel) suffix("%")
+0 "0%" 10 "10%" 20 "20%" 30 "30%" 40 "40%" 50 "50%"
+
+. catplot global_south, percent asyvar yla(`pctlabel', nogrid)  title("{bf:b }",
+>  size(15pt) span pos(11)) bargap(30) blabel(bar, size(medium) format(%9.0f) po
+> s(center)) l1title("")  b1title("") legend(rows(2) pos(6) ring(1) size()) //  
+
+. gr save "$output\parties_sample.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\parties_sample.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. * Combine B&C
+. grc1leg "$output\parties_sample.gph" "$output\parties_cop.gph", 
+
+. gr save  "$output\distribution.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\distribution.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if smaple == .
+smaple not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. replace sample = 2 if smaple == .
+smaple not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. cibar global_south, over1(sample)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. 
+end of do-file
+
+. graph bar (mean) gs1 gs2
+
+. graph bar (mean) gs1 gs2, over(sample)
+
+. graph bar (mean) gs1 gs2, over(sample) legend(order(0 "Global North" 1 "Global
+>  South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(0 "Our sample" 1 "COP24")) ytit
+> le(Percent) legend(order(1 "Global North" 2 "Global South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) ytit
+> le(Percent) legend(order(1 "Global North" 2 "Global South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) ytit
+> le(Percent) legend(order(1 "Global North" 2 "Global South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar) ytitle(%) legend(order(1 "Global North" 2 "Global South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(%) legend(order(1 "Global North" 2 "Global South
+> "))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) legend(order(1 "Global North" 2 "Global S
+> outh"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) title(b) legend(order(1 "Global North" 2 
+> "Global South"))
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) "{bf:b } Distribution in our sample", siz
+> e(15pt) span pos(11)) legend(order(1 "Global North" 2 "Global South"))
+invalid 'size' 
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) title("{bf:b } Distribution in our sample
+> ", size(15pt) span pos(11)) legend(order(1 "Global North" 2 "Global South"))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(15pt) span pos(11)
+> ) legend(order(1 "Male" 2 "Female"))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,234       66.72       66.72
+Non-Governmental |      1,794       22.87       89.59
+   Not specified |        817       10.41      100.00
+-----------------+-----------------------------------
+           Total |      7,845      100.00
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,234       66.72       66.72
+Non-Governmental |      1,794       22.87       89.59
+   Not specified |        817       10.41      100.00
+-----------------+-----------------------------------
+           Total |      7,845      100.00
+variable non_gov1 already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. graph bar (mean) non_gov1 non_gov2 non_gov3, over(sample, relabel(1 "Our sampl
+> e" 2 "COP24")) blabel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(1
+> 5pt) span pos(11)) legend(order(1 "Governmental" 2 "Non-Governmental" 3 "Not s
+> pecified"))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. replace non_gov = org1 if sample == 1
+org1 not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. replace non_gov = orga1 if sample == 1
+(276 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *--------------------------------------------------
+. * 04 - Maps.do
+. * START: 2021-10-01
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *------------------
+. *       Maps
+. *------------------
+. 
+. /* What needs to be installed:
+> ssc install spmap
+> ssc install shp2dta
+> ssc install mif2dta
+> ssc install geo2xy
+> ssc install moss
+> 
+> net install palettes, replace from("https://raw.githubusercontent.com/benjann/
+> palettes/master/")
+> net install colrspace, replace from("https://raw.githubusercontent.com/benjann
+> /colrspace/master/")
+> 
+> *Tutorial: https://www.stata.com/support/faqs/graphics/spmap-and-maps/
+> *Source of shapefile:   */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. 
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. /* Only needs to be run once to create _db & _co
+> cd "$working_ANALYSIS\data"
+> shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+> */
+. 
+. *preserve
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$output\map_participation", replace
+(note: file \map_participation.gph not found)
+file \map_participation.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *--------------------------------------------------
+. * 04 - Maps.do
+. * START: 2021-10-01
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *------------------
+. *       Maps
+. *------------------
+. 
+. /* What needs to be installed:
+> ssc install spmap
+> ssc install shp2dta
+> ssc install mif2dta
+> ssc install geo2xy
+> ssc install moss
+> 
+> net install palettes, replace from("https://raw.githubusercontent.com/benjann/
+> palettes/master/")
+> net install colrspace, replace from("https://raw.githubusercontent.com/benjann
+> /colrspace/master/")
+> 
+> *Tutorial: https://www.stata.com/support/faqs/graphics/spmap-and-maps/
+> *Source of shapefile:   */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. 
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Volla
+> n)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. 
+. 
+. 
+. *---------------------
+. * I) Preparing Map Data
+. *---------------------
+. // Fig. S1: Sample population
+. * A. Origin of population [MAP]
+. 
+. /* Only needs to be run once to create _db & _co
+> cd "$working_ANALYSIS\data"
+> shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+> */
+. 
+. *preserve
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$working_ANALYSIS\results\intermediate\map_participation", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\map_partici
+> pation.gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\map_participation
+> .gph saved)
+
+. 
+. 
+. 
+. 
+. 
+. // Combine our data with COP24-Data
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. * B: Global North / Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) title("{bf:b}", size(15pt) span pos(11)) 
+> legend(order(1 "Global North" 2 "Global South"))
+
+. 
+. * C: Male / Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(15pt) span pos(11)
+> ) legend(order(1 "Male" 2 "Female"))
+
+. 
+. * D: Gov / Non-Gov
+. replace non_gov = orga1 if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,332       65.66       65.66
+Non-Governmental |      1,972       24.28       89.94
+   Not specified |        817       10.06      100.00
+-----------------+-----------------------------------
+           Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2 non_gov3, over(sample, relabel(1 "Our sampl
+> e" 2 "COP24")) blabel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(1
+> 5pt) span pos(11)) legend(order(1 "Governmental" 2 "Non-Governmental" 3 "Not s
+> pecified"))
+
+. 
+. asfd
+command asfd is unrecognized
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. 
+. // Combine our data with COP24-Data
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. * D: Gov / Non-Gov
+. replace non_gov = orga1 - 2 *(-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,234       64.45       64.45
+Non-Governmental |      1,794       22.09       86.54
+               2 |         98        1.21       87.75
+               3 |        178        2.19       89.94
+   Not specified |        817       10.06      100.00
+-----------------+-----------------------------------
+           Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2 non_gov3, over(sample, relabel(1 "Our sampl
+> e" 2 "COP24")) blabel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(1
+> 5pt) span pos(11)) legend(order(1 "Governmental" 2 "Non-Governmental" 3 "Not s
+> pecified"))
+
+. 
+end of do-file
+
+. tab orga1
+
+orga==Gover |
+    nmental |
+Organizatio |
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |         98       35.51       35.51
+          1 |        178       64.49      100.00
+------------+-----------------------------------
+      Total |        276      100.00
+
+. tab orga1, nolab
+
+orga==Gover |
+    nmental |
+Organizatio |
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |         98       35.51       35.51
+          1 |        178       64.49      100.00
+------------+-----------------------------------
+      Total |        276      100.00
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. // Combine our data with COP24-Data
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. * D: Gov / Non-Gov
+. replace non_gov = orga1 - 1 *(-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,234       64.45       64.45
+Non-Governmental |      1,892       23.30       87.75
+               2 |        178        2.19       89.94
+   Not specified |        817       10.06      100.00
+-----------------+-----------------------------------
+           Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2 non_gov3, over(sample, relabel(1 "Our sampl
+> e" 2 "COP24")) blabel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(1
+> 5pt) span pos(11)) legend(order(1 "Governmental" 2 "Non-Governmental" 3 "Not s
+> pecified"))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. // Combine our data with COP24-Data
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. * D: Gov / Non-Gov
+. replace non_gov = (orga1 - 1) *(-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governmental |
+           actor |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+    Governmental |      5,412       66.64       66.64
+Non-Governmental |      1,892       23.30       89.94
+   Not specified |        817       10.06      100.00
+-----------------+-----------------------------------
+           Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2 non_gov3, over(sample, relabel(1 "Our sampl
+> e" 2 "COP24")) blabel(bar, format(%3.2g)) ytitle(Share) title("{bf:c}", size(1
+> 5pt) span pos(11)) legend(order(1 "Governmental" 2 "Non-Governmental" 3 "Not s
+> pecified"))
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD5850_000000.tmp"
+
+. *--------------------------------------------------
+. * representativeness.do
+. * START: 2022-03-07
+. * Authors: Max Burger
+. * Philipps University Marburg
+. *--------------------------------------------------
+. 
+. 
+. *--------------------------------------------------
+. * Program Setup
+. *--------------------------------------------------
+. clear all               
+
+. set more off            
+
+. set linesize 80         
+
+. macro drop _all        
+
+. set matsize 2000
+set matsize ignored.
+    Matrix sizes are no longer limited by c(matsize) in modern Statas.  Matrix
+    sizes are now limited by flavor of Stata.  See limits for more details.
+
+. *set scheme my538w
+. * -------------------------------------------------
+. 
+. 
+. 
+. 
+. *************************************
+. ********** GENERELLE INFOS **********
+. *************************************
+. /*
+> 
+>         
+> */
+. 
+. *******************
+. ***  Directory  ***
+. *******************
+. 
+. * Max (work)
+. global workpath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DO-FILES"
+
+. global datasource "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\2_Raw Data\DTA-FILES"
+
+. global datapath   "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\DTA-FILES"
+
+. global output     "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\OUTPUT"
+
+. global xls        "C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_D
+> elegates\4_Carbon_Prices\STATA\\XLS-FILES"
+
+. */
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. *--------------
+. * 1) Import Participants of the COP
+. *------------
+. import excel "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Su
+> stUse\Donia_Delegates\8_Submission\NSUST\Submission 3 (Revision)\Provisional l
+> ist delegates_COP24.xlsx", sheet("Sheet1") firstrow case(lower) clear
+(15 vars, 7,845 obs)
+
+. drop i j k l m n o 
+
+. 
+. 
+. 
+. *----------------
+. * 2) Classify COP24 participants 
+. *---------------------
+. 
+. * Male / Female
+. replace title = trim(title)
+(710 real changes made)
+
+. gen female = .
+(7,845 missing values generated)
+
+. replace female = 0 if title == "H.E. Mr"
+(3 real changes made)
+
+. replace female = 0 if title == "H.E. Mr."
+(185 real changes made)
+
+. replace female = 1 if title == "H.E. Ms-"
+(1 real change made)
+
+. replace female = 1 if title == "H.E. Ms."
+(48 real changes made)
+
+. replace female = 0 if title == "H.E.Mr."
+(65 real changes made)
+
+. replace female = 1 if title == "H.E.Ms."
+(25 real changes made)
+
+. replace female = 0 if title == "H.E:Mr."
+(1 real change made)
+
+. replace female = 0 if title == "H.R.Mr."
+(1 real change made)
+
+. replace female = 0 if title == "Issa"
+(1 real change made)
+
+. replace female = 0 if title == "M"
+(4 real changes made)
+
+. replace female = 0 if title == "M."
+(258 real changes made)
+
+. replace female = 1 if title == "Mme"
+(270 real changes made)
+
+. replace female = 1 if title == "Mme."
+(40 real changes made)
+
+. replace female = 0 if title == "Mr"
+(270 real changes made)
+
+. replace female = 0 if title == "Mr,"
+(2 real changes made)
+
+. replace female = 0 if title == "Mr."
+(4,149 real changes made)
+
+. replace female = 1 if title == "Mrs."
+(1 real change made)
+
+. replace female = 1 if title == "Ms"
+(174 real changes made)
+
+. replace female = 1 if title == "Ms,"
+(1 real change made)
+
+. replace female = 1 if title == "Ms."
+(2,110 real changes made)
+
+. replace female = 1 if title == "Ms. Dr."
+(2 real changes made)
+
+. replace female = 0 if title == "S.E. M."
+(15 real changes made)
+
+. replace female = 1 if title == "S.E. Mme"
+(5 real changes made)
+
+. replace female = 0 if title == "S.E. Sr."
+(4 real changes made)
+
+. replace female = 1 if title == "S.E. Sra"
+(1 real change made)
+
+. replace female = 1 if title == "S.E. Sra."
+(3 real changes made)
+
+. replace female = 0 if title == "S.E.M."
+(6 real changes made)
+
+. replace female = 0 if title == "S.E.Sr."
+(6 real changes made)
+
+. replace female = 0 if title == "Sr."
+(112 real changes made)
+
+. replace female = 1 if title == "Sra."
+(81 real changes made)
+
+. 
+. lab define female1 0 "male" 1 "female"
+
+. lab val female female1
+
+. lab var female "Female"
+
+. 
+. 
+. 
+. * Governmental or Non-governmental actors
+. gen non_gov = .
+(7,845 missing values generated)
+
+. replace non_gov = 0 if governmental_nongovernmental == "G"
+(5,234 real changes made)
+
+. replace non_gov = 1 if governmental_nongovernmental == "N"
+(1,794 real changes made)
+
+. lab define non_gov 0 "Governmental" 1 "Other"
+
+. lab val non_gov non_gov
+
+. lab var non_gov "Non-governmental actor"
+
+. 
+. 
+. 
+. 
+. 
+. * Assign countries to continents
+. replace country = trim(country)
+(51 real changes made)
+
+. gen continent = ""
+(7,845 missing values generated)
+
+. 
+. ***Africa
+. replace continent = "Africa" if country == "Algeria"
+variable continent was str1 now str6
+(22 real changes made)
+
+. replace continent = "Africa" if country == "Angola"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Benin"
+(152 real changes made)
+
+. replace continent = "Africa" if country == "Botswana"
+(53 real changes made)
+
+. replace continent = "Africa" if country == "Burkina Faso"
+(90 real changes made)
+
+. replace continent = "Africa" if country == "Burundi"
+(12 real changes made)
+
+. replace continent = "Africa" if country == "Cabo Verde"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Cameroon"
+(39 real changes made)
+
+. replace continent = "Africa" if country == "Central African Republic"
+(36 real changes made)
+
+. replace continent = "Africa" if country == "Chad"
+(57 real changes made)
+
+. replace continent = "Africa" if country == "Comoros"
+(76 real changes made)
+
+. replace continent = "Africa" if country == "Congo"
+(164 real changes made)
+
+. replace continent = "Africa" if country == "Dem. Rep.of Congo"
+(234 real changes made)
+
+. replace continent = "Africa" if country == "Djibouti"
+(16 real changes made)
+
+. replace continent = "Africa" if country == "Egypt"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Equatorial Guinea"
+(24 real changes made)
+
+. replace continent = "Africa" if country == "Eritrea"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Eswatini"
+(8 real changes made)
+
+. replace continent = "Africa" if country == "Ethiopia"
+(42 real changes made)
+
+. replace continent = "Africa" if country == "Gabon"
+(21 real changes made)
+
+. replace continent = "Africa" if country == "Gambia"
+(93 real changes made)
+
+. replace continent = "Africa" if country == "Ghana"
+(111 real changes made)
+
+. replace continent = "Africa" if country == "Guinea"
+(404 real changes made)
+
+. replace continent = "Africa" if country == "Guinea-Bissau" | country == "Guine
+> a- Bissau"
+(14 real changes made)
+
+. replace continent = "Africa" if country == "Côte d´Ivoire"
+(208 real changes made)
+
+. replace continent = "Africa" if country == "Kenya"
+(71 real changes made)
+
+. replace continent = "Africa" if country == "Lesotho"
+(17 real changes made)
+
+. replace continent = "Africa" if country == "Liberia"
+(28 real changes made)
+
+. replace continent = "Africa" if country == "Libya"
+(3 real changes made)
+
+. replace continent = "Africa" if country == "Madagascar"
+(86 real changes made)
+
+. replace continent = "Africa" if country == "Malawi"
+(23 real changes made)
+
+. replace continent = "Africa" if country == "Mali"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Mauritania"
+(37 real changes made)
+
+. replace continent = "Africa" if country == "Mauritius"
+(10 real changes made)
+
+. replace continent = "Africa" if country == "Morocco"
+(104 real changes made)
+
+. replace continent = "Africa" if country == "Mozambique"
+(29 real changes made)
+
+. replace continent = "Africa" if country == "Namibia"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "Niger"
+(54 real changes made)
+
+. replace continent = "Africa" if country == "Nigeria"
+(141 real changes made)
+
+. replace continent = "Africa" if country == "Rwanda"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sao Tome and Principe"
+(4 real changes made)
+
+. replace continent = "Africa" if country == "Senegal"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Seychelles"
+(46 real changes made)
+
+. replace continent = "Africa" if country == "Sierra Leone"
+(32 real changes made)
+
+. replace continent = "Africa" if country == "Somalia"
+(7 real changes made)
+
+. replace continent = "Africa" if country == "South Africa"
+(50 real changes made)
+
+. replace continent = "Africa" if country == "South Sudan"
+(19 real changes made)
+
+. replace continent = "Africa" if country == "Sudan"
+(171 real changes made)
+
+. replace continent = "Africa" if country == "Tanzania"
+(31 real changes made)
+
+. replace continent = "Africa" if country == "Togo"
+(91 real changes made)
+
+. replace continent = "Africa" if country == "Tunisia"
+(40 real changes made)
+
+. replace continent = "Africa" if country == "Uganda"
+(61 real changes made)
+
+. replace continent = "Africa" if country == "Zambia"
+(26 real changes made)
+
+. replace continent = "Africa" if country == "Zimbabwe"
+(86 real changes made)
+
+. 
+. ***Asia
+. replace continent = "Asia" if country == "Afghanistan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Armenia"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Azerbaijan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Bahrain"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Bangladesh"
+(83 real changes made)
+
+. replace continent = "Asia" if country == "Bhutan"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "British Indian Ocean Territory (UK t
+> erritory)"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Brunei Darussalam"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Cambodia"
+(32 real changes made)
+
+. replace continent = "Asia" if country == "China" | country == "China, Hong Kon
+> g SAR" | country == "China, Macao SAR" | country == "China, Taiwan Province of
+> "
+(89 real changes made)
+
+. replace continent = "Asia" if country == "Georgia"
+(12 real changes made)
+
+. replace continent = "Asia" if country == "Hong Kong"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "India"
+(35 real changes made)
+
+. replace continent = "Asia" if country == "Indonesia"
+(191 real changes made)
+
+. replace continent = "Asia" if country == "Iran"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Iraq"
+(51 real changes made)
+
+. replace continent = "Asia" if country == "Israel"
+(13 real changes made)
+
+. replace continent = "Asia" if country == "Japan"
+(116 real changes made)
+
+. replace continent = "Asia" if country == "Jordan"
+(15 real changes made)
+
+. replace continent = "Asia" if country == "Kazakhstan"
+(27 real changes made)
+
+. replace continent = "Asia" if country == "Kuwait"
+(29 real changes made)
+
+. replace continent = "Asia" if country == "Kyrgyzstan"
+(7 real changes made)
+
+. replace continent = "Asia" if country == "Lao People's Democratic Republic"
+(18 real changes made)
+
+. replace continent = "Asia" if country == "Lebanon"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Macau"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Malaysia"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Maldives"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Mongolia"
+(20 real changes made)
+
+. replace continent = "Asia" if country == "Myanmar"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Nepal"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "North Korea"
+(3 real changes made)
+
+. replace continent = "Asia" if country == "Oman"
+(16 real changes made)
+
+. replace continent = "Asia" if country == "Pakistan"
+(17 real changes made)
+
+. replace continent = "Asia" if country == "Palestine"
+(24 real changes made)
+
+. replace continent = "Asia" if country == "Phillipines"
+(28 real changes made)
+
+. replace continent = "Asia" if country == "Qatar"
+(39 real changes made)
+
+. replace continent = "Asia" if country == "Saudi Arabia"
+(37 real changes made)
+
+. replace continent = "Asia" if country == "Singapore"
+(30 real changes made)
+
+. replace continent = "Asia" if country == "Republic of Korea"
+(80 real changes made)
+
+. replace continent = "Asia" if country == "Sri Lanka"
+(14 real changes made)
+
+. replace continent = "Asia" if country == "Syrian Arab Republic"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Taiwan"
+(0 real changes made)
+
+. replace continent = "Asia" if country == "Tajikistan"
+(10 real changes made)
+
+. replace continent = "Asia" if country == "Thailand"
+(73 real changes made)
+
+. replace continent = "Asia" if country == "Timor Leste"
+(21 real changes made)
+
+. replace continent = "Asia" if country == "Turkmenistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "United Arab Emirates"
+(72 real changes made)
+
+. replace continent = "Asia" if country == "Uzbekistan"
+(5 real changes made)
+
+. replace continent = "Asia" if country == "Vietnam"
+(44 real changes made)
+
+. replace continent = "Asia" if country == "Yemen"
+(10 real changes made)
+
+. 
+. ***Europe
+. replace continent = "Europe" if country == "Albania"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Andorra"
+(5 real changes made)
+
+. replace continent = "Europe" if country == "Austria"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Belarus"
+(7 real changes made)
+
+. replace continent = "Europe" if country == "Belgium"
+(29 real changes made)
+
+. replace continent = "Europe" if country == "Bosnia and Herzegovina"
+(14 real changes made)
+
+. replace continent = "Europe" if country == "Bulgaria"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Croatia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Cyprus"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Czech Republic"
+(26 real changes made)
+
+. replace continent = "Europe" if country == "Denmark"
+(50 real changes made)
+
+. replace continent = "Europe" if country == "Estonia"
+(24 real changes made)
+
+. replace continent = "Europe" if country == "Finland"
+(51 real changes made)
+
+. replace continent = "Europe" if country == "France"
+(170 real changes made)
+
+. replace continent = "Europe" if country == "Germany"
+(153 real changes made)
+
+. replace continent = "Europe" if country == "Greece"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Hungary"
+(22 real changes made)
+
+. replace continent = "Europe" if country == "Iceland"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Ireland"
+(33 real changes made)
+
+. replace continent = "Europe" if country == "Italy"
+(49 real changes made)
+
+. replace continent = "Europe" if country == "Latvia"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Liechtenstein"
+(4 real changes made)
+
+. replace continent = "Europe" if country == "Lithuania"
+(27 real changes made)
+
+. replace continent = "Europe" if country == "Luxembourg"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Malta"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "Moldova"
+(11 real changes made)
+
+. replace continent = "Europe" if country == "Monaco"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "Montenegro"
+(17 real changes made)
+
+. replace continent = "Europe" if country == "Netherlands"
+(40 real changes made)
+
+. replace continent = "Europe" if country == "Macedonia"
+(10 real changes made)
+
+. replace continent = "Europe" if country == "Norway"
+(36 real changes made)
+
+. replace continent = "Europe" if country == "Poland"
+(210 real changes made)
+
+. replace continent = "Europe" if country == "Portugal"
+(31 real changes made)
+
+. replace continent = "Europe" if country == "Romania"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Russia"
+(54 real changes made)
+
+. replace continent = "Europe" if country == "San Marino"
+(3 real changes made)
+
+. replace continent = "Europe" if country == "Serbia"
+(23 real changes made)
+
+. replace continent = "Europe" if country == "Slovakia"
+(38 real changes made)
+
+. replace continent = "Europe" if country == "Slovenia"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Spain"
+(46 real changes made)
+
+. replace continent = "Europe" if country == "Sweden"
+(42 real changes made)
+
+. replace continent = "Europe" if country == "Switzerland"
+(25 real changes made)
+
+. replace continent = "Europe" if country == "Turkey"
+(81 real changes made)
+
+. replace continent = "Europe" if country == "Ukraine"
+(20 real changes made)
+
+. replace continent = "Europe" if country == "United Kingdom"
+(52 real changes made)
+
+. replace continent = "Europe" if country == "Holy See"
+(8 real changes made)
+
+. replace continent = "Europe" if country == "European Union"
+(83 real changes made)
+
+. 
+. 
+. 
+. 
+. 
+. ***North America
+. replace continent = "North America" if country == "Antigua and Barbuda"
+variable continent was str6 now str13
+(5 real changes made)
+
+. replace continent = "North America" if country == "Bahamas"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Barbados"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Belize"
+(17 real changes made)
+
+. replace continent = "North America" if country == "Canada"
+(126 real changes made)
+
+. replace continent = "North America" if country == "Costa Rica"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Cuba"
+(8 real changes made)
+
+. replace continent = "North America" if country == "Dominica"
+(5 real changes made)
+
+. replace continent = "North America" if country == "Dominican Republic"
+(35 real changes made)
+
+. replace continent = "North America" if country == "El Salvador"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Grenada"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Guatemala"
+(25 real changes made)
+
+. replace continent = "North America" if country == "Haiti"
+(12 real changes made)
+
+. replace continent = "North America" if country == "Honduras"
+(54 real changes made)
+
+. replace continent = "North America" if country == "Jamaica"
+(13 real changes made)
+
+. replace continent = "North America" if country == "Mexiko"
+(32 real changes made)
+
+. replace continent = "North America" if country == "Nicaragua"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Panama"
+(15 real changes made)
+
+. replace continent = "North America" if country == "Saint Kitts and Nevis"
+(4 real changes made)
+
+. replace continent = "North America" if country == "Saint Lucia"
+(14 real changes made)
+
+. replace continent = "North America" if country == "Saint Vincent and the Grena
+> dines"
+(6 real changes made)
+
+. replace continent = "North America" if country == "Trinidad and Tobago"
+(0 real changes made)
+
+. replace continent = "North America" if country == "USA"
+(44 real changes made)
+
+. 
+. *** South America
+. replace continent = "South America" if country == "Argentina"
+(11 real changes made)
+
+. replace continent = "South America" if country == "Bolivia"
+(20 real changes made)
+
+. replace continent = "South America" if country == "Brazil"
+(107 real changes made)
+
+. replace continent = "South America" if country == "Chile"
+(31 real changes made)
+
+. replace continent = "South America" if country == "Colombia"
+(17 real changes made)
+
+. replace continent = "South America" if country == "Ecuador"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Guyana"
+(4 real changes made)
+
+. replace continent = "South America" if country == "Paraguay"
+(30 real changes made)
+
+. replace continent = "South America" if country == "Peru"
+(29 real changes made)
+
+. replace continent = "South America" if country == "Suriname"
+(15 real changes made)
+
+. replace continent = "South America" if country == "Uruguay"
+(8 real changes made)
+
+. replace continent = "South America" if country == "Venezuela"
+(14 real changes made)
+
+. 
+. *** Oceania
+. replace continent = "Oceania" if country == "Australia"
+(30 real changes made)
+
+. replace continent = "Oceania" if country == "Fiji"
+(60 real changes made)
+
+. replace continent = "Oceania" if country == "Kiribati"
+(20 real changes made)
+
+. replace continent = "Oceania" if country == "Marshall Islands"
+(28 real changes made)
+
+. replace continent = "Oceania" if country == "Micronesia"
+(18 real changes made)
+
+. replace continent = "Oceania" if country == "Nauru"
+(14 real changes made)
+
+. replace continent = "Oceania" if country == "New Zealand"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Palau"
+(4 real changes made)
+
+. replace continent = "Oceania" if country == "Papua New Guinea"
+(19 real changes made)
+
+. replace continent = "Oceania" if country == "American Samoa"
+(0 real changes made)
+
+. replace continent = "Oceania" if country == "Solomon Islands"
+(22 real changes made)
+
+. replace continent = "Oceania" if country == "Tonga"
+(26 real changes made)
+
+. replace continent = "Oceania" if country == "Tuvalu"
+(21 real changes made)
+
+. replace continent = "Oceania" if country == "Vanuatu"
+(23 real changes made)
+
+. replace continent = "Oceania" if country == "Cook islands"
+(11 real changes made)
+
+. replace continent = "Oceania" if country == "Niue"
+(5 real changes made)
+
+. 
+. lab def conti 1 "Africa" 2 "Asia" 3 "Europe" 4 "North America" 5 "South Americ
+> a" 6 "Oceania", replace
+
+. encode continent, gen(continent2) lab(conti)
+
+. drop continent
+
+. rename continent2 continent
+
+. lab var continent "Continent"
+
+. 
+. 
+. 
+. ** Add classificatoin as Global North/South
+. rename country country_home
+
+. merge m:1 country_home using "$datapath\development"
+(note: variable country_home was str32, now str87 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           169
+        from master                       106  (_merge==1)
+        from using                         63  (_merge==2)
+
+    matched                             7,739  (_merge==3)
+    -----------------------------------------
+
+. ed country_home if _merge == 1
+
+. replace global_south = 0 if country_home == "European Union" | country_home ==
+>  "Monaco"
+(103 real changes made)
+
+. replace global_south = 1 if country_home == "North Korea"
+(3 real changes made)
+
+. drop _merge
+
+. lab var global_south "Participant from country defined by World Bank as Global
+>  South"
+
+. 
+. 
+. * Drop
+. drop numtotal nuncountry governmental_nongovernmental
+
+. 
+. *--- SAVE ---*
+. save "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Do
+> nia_Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta", replace
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia
+> _Delegates\8_Submission\NSUST\analysis\data\cop24_parties.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+.  
+. 
+end of do-file
+

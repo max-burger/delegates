@@ -1,0 +1,4474 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustU
+> se\Donia_Delegates\8_Submission\NSUST\analysis/scripts/logs/2024.03.04-15.32.1
+> 8.log.txt
+  log type:  text
+ opened on:   4 Mar 2024, 15:32:18
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time:  4 Mar 2024 15:32:18
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red // select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox 
+> //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, th
+> at is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces tra
+> nsparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "25
+> 5 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "22
+> 0 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "22
+> 0 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#
+> arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_labe
+> l tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b } Distribution in our samp
+> le", size(15pt) span pos(11)) 
+variable sample not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b } Distribution in our samp
+> le", size(15pt) span pos(11)) 
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1)) 
+
+. 
+end of do-file
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) title(b) legend(order(0 "Global North" 1 
+> "Global South"))
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle(Share) title(b) legend(order(1 "Global North" 2 
+> "Global South"))
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(15pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South"))
+
+. graph save "$working_ANALYSIS\intermediate\Figure S1b", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure S1b.gph not 
+> found)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure
+    S1b.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+variable gs1 already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(15pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South"))
+
+. graph save "$working_ANALYSIS\intermediate\Figure S1b", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure S1b.gph not 
+> found)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure
+    S1b.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female"))
+
+. graph save "$working_ANALYSIS\intermediate\Figure S1c", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure S1c.gph not 
+> found)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure
+    S1c.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+variable gs1 already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(15pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.
+> gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.
+> gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. tab female, gen(non_gov)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.
+> gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. grc1leg "$working_ANALYSIS\results\intermediate\Figure S1a" "$working_ANALYSIS
+> \results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediate\Figu
+> re S1d", rows(1)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\F
+    > igure S1a.gph not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. grc1leg "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_ANALYSIS
+> \results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediate\Figu
+> re S1d", rows(1)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1)
+
+. gr save  "$output\distribution.gph", replace
+(file C:\Users\Max Burger\Google Drive\Promotion\Projects\Donia_Delegates\4_Carb
+> on_Prices\STATA\OUTPUT\distribution.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bc
+> d.gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. *preserve
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+File world_co.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. cd "$working_ANALYSIS\data"
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis\data
+
+. shp2dta using country.shp, database(world_db) coordinates(world_co) genid(id)
+type: 5
+file world_co.dta already exists
+r(602);
+
+end of do-file
+
+r(602);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. *preserve
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$working_ANALYSIS\intermediate\Figure S1a", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure S1a.gph not 
+> found)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure
+    S1a.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\F
+    > igure S1a.gph not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$working_ANALYSIS\intermediate\Figure S1a", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure S1a.gph not 
+> found)
+file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+    SustUse\Donia_Delegates\8_Submission\NSUST\analysis\intermediate\Figure
+    S1a.gph could not be opened
+r(603);
+
+end of do-file
+
+r(603);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. *preserve
+. use "$working_ANALYSIS\data\world_db" , clear
+
+. rename name country_home
+
+. 
+. ** Unify country names
+. replace country_home = "Congo" if country_home == "Republic of Congo"
+(1 real change made)
+
+. replace country_home = "Czechia" if country_home == "Czech Republic"
+(1 real change made)
+
+. replace country_home = "Côte d’Ivoire" if country_home == "Cte d'Ivoire"
+(1 real change made)
+
+. replace country_home = "Gambia" if country_home == "The Gambia"
+(1 real change made)
+
+. replace country_home = "Lao People's Democratic Republic" if country_home == "
+> Laos"
+(1 real change made)
+
+. replace country_home = "Micronesia" if country_home == "Federated States of Mi
+> cronesia"
+(1 real change made)
+
+. replace country_home = "Republic of Korea" if country_home == "South Korea"
+(1 real change made)
+
+. replace country_home = "Viet Nam" if country_home == "Vietnam"
+(1 real change made)
+
+. 
+. 
+. ** Merge with dataset
+. merge 1:m country_home using "$working_ANALYSIS\data\delegates_analysis_comple
+> te.dta"
+(note: variable id was int, now float to accommodate using data's values)
+(note: variable country_home was str32, now str481 to accommodate using data's
+       values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           100
+        from master                       100  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                               276  (_merge==3)
+    -----------------------------------------
+
+. 
+. gen observation = .
+(376 missing values generated)
+
+. replace observation = 1 if temp_rise != .
+(276 real changes made)
+
+. egen obs_country = count(observation), by(country_home)
+
+. replace obs_country = . if obs_country == 0
+(100 real changes made, 100 to missing)
+
+. 
+. collapse (mean) obs_country, by(country_home id) 
+
+. 
+. spmap obs_country using world_co if country_home != "Antarctica", id(id) fcolo
+> r(Blues2) ///
+> clmethod(custom) clbreaks(0 1 2 3 6.1 9.1 12) ///
+> legend(symy(*1.5) symx(*1.5) size(*1.5)) legorder(lohi)  ///
+> legend(label(2 "1") label(3 "2" ) label(4 "3") label(5 "4 - 6") label(6 "7 - 9
+> ") label(7 "10 - 12")) ///
+> osize(0.1pt ..) ndfcolor(white) ndocolor(gs5) ndsize(0.2pt) legstyle(2) legtit
+> le("Observation") title("{bf:a}", size(11pt) pos(11) span)
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1a", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1a.
+> gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1a.gph sa
+> ved)
+
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.g
+> ph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.2)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+variable global_south not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. tab female, gen(non_gov)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other"))
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,234       66.72       66.72
+       Other |      2,611       33.28      100.00
+-------------+-----------------------------------
+       Total |      7,845      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,412       66.64       66.64
+       Other |      2,709       33.36      100.00
+-------------+-----------------------------------
+       Total |      8,121      100.00
+variable non_gov1 already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,412       66.64       66.64
+       Other |      2,709       33.36      100.00
+-------------+-----------------------------------
+       Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other")) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South", rows(2))) nodraw
+, not an integer, option order() ignored
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female", rows(2))) nodraw
+, not an integer, option order() ignored
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,412       66.64       66.64
+       Other |      2,709       33.36      100.00
+-------------+-----------------------------------
+       Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other", rows(2))) nodraw
+, not an integer, option order() ignored
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South" rows(2))) nodraw
+rows(2) not an integer, option order() ignored
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South") rows(2)) nodraw
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+variable gs1 already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(11pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(15pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,412       66.64       66.64
+       Other |      2,709       33.36      100.00
+-------------+-----------------------------------
+       Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(15pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. // Comparision of distributions our sample vs. COP24 population
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. gen sample = 1
+
+. append using "$working_ANALYSIS\data\cop24_parties.dta"
+(label global already defined)
+(label dev already defined)
+(label conti already defined)
+
+. replace sample = 2 if sample == .
+(7,908 real changes made)
+
+. 
+. 
+. // Figure S1b: Global North vs. Global South
+. tab global_south, gen(gs)
+
+global_south |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Global North |      2,179       26.63       26.63
+Global South |      6,005       73.37      100.00
+-------------+-----------------------------------
+       Total |      8,184      100.00
+
+. graph bar (mean) gs1 gs2, over(sample, relabel(1 "Our Sample" 2 "COP24")) blab
+> el(bar, format(%3.2g)) ytitle("Share") title("{bf:b}", size(10pt) span pos(11)
+> )  legend(order(1 "Global North" 2 "Global South") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1b", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1b.gph sa
+> ved)
+
+. 
+. 
+. // Figure S1c: Male vs. Female
+. tab female, gen(fem)
+
+  female=1, |
+    other=0 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      5,269       64.89       64.89
+          1 |      2,851       35.11      100.00
+------------+-----------------------------------
+      Total |      8,120      100.00
+
+. graph bar (mean) fem1 fem2, over(sample, relabel(1 "Our Sample" 2 "COP24")) bl
+> abel(bar, format(%3.2g)) ytitle("Share") title("{bf:c}", size(10pt) span pos(1
+> 1))  legend(order(1 "Male" 2 "Female") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1c", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1c.gph sa
+> ved)
+
+.  
+. // Figure S1d: Governmental vs. Other
+. replace non_gov = (orga1 - 1) * (-1) if sample == 1
+(276 real changes made)
+
+. tab non_gov, gen(non_gov)
+
+Non-governme |
+  ntal actor |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Governmental |      5,412       66.64       66.64
+       Other |      2,709       33.36      100.00
+-------------+-----------------------------------
+       Total |      8,121      100.00
+
+. graph bar (mean) non_gov1 non_gov2, over(sample, relabel(1 "Our Sample" 2 "COP
+> 24")) blabel(bar, format(%3.2g)) ytitle("Share") title("{bf:d}", size(10pt) sp
+> an pos(11))  legend(order(1 "Governmental" 2 "Other") rows(2)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\Figure S1d", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1d.gph sa
+> ved)
+
+.  
+. 
+. 
+. * Combine B,C & D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1b" "$working_AN
+> ALYSIS\results\intermediate\Figure S1c" "$working_ANALYSIS\results\intermediat
+> e\Figure S1d", rows(1) iscale(1.1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1bcd", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1bcd.gph 
+> saved)
+
+. 
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr export "$working_ANALYSIS\results\intermediate\Figure S1.tif", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.t
+> if not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.tif wri
+> tten in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * Combine A with B,C&D
+. graph combine "$working_ANALYSIS\results\intermediate\Figure S1a"  "$working_A
+> NALYSIS\results\intermediate\Figure S1bcd", cols(1)
+
+. gr save  "$working_ANALYSIS\results\intermediate\Figure S1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.gph sav
+> ed)
+
+. gr export "$working_ANALYSIS\results\intermediate\Figure S1.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\intermediate\Figure S1.tif wri
+> tten in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr export "$working_ANALYSIS\results\Figure S1.tif", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\Figure S1.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\Figure S1.tif written in TIFF 
+> format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr export "$working_ANALYSIS\results\figures\Figure S1.tif", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUs
+> e\Donia_Delegates\8_Submission\NSUST\analysis\results\figures\Figure S1.tif no
+> t found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Doni
+> a_Delegates\8_Submission\NSUST\analysis\results\figures\Figure S1.tif written 
+> in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // S4.2.1 Global carbon price suggested to stay below stated temperature targe
+> t
+. ** Table S4: Effects of technological optimism mindset on global carbon price 
+> deemed necessary to reach stated temperature target.
+. * Binary Model [Price deemed appropriate to reach temperature target < 60 USD]
+. probit price_below temp_rise tech_ms_pca $info_source $orga cops_attended $soc
+> ioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -190.08217  
+Iteration 1:   log pseudolikelihood = -172.13683  
+Iteration 2:   log pseudolikelihood = -172.12773  
+Iteration 3:   log pseudolikelihood = -172.12773  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(4)      =      33.20
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -172.12773               Pseudo R2         =     0.0945
+
+-------------------------------------------------------------------------------
+              |               Robust
+  price_below |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0090542    .091166    -0.10   0.921    -.1877362    .1696277
+  tech_ms_pca |   .2687331    .056744     4.74   0.000     .1575169    .3799494
+cops_attended |   .0314421   .0138441     2.27   0.023     .0043081     .058576
+   treat_tech |  -.5064148   .1603151    -3.16   0.002    -.8206266   -.1922031
+        _cons |   .2291595   .1997708     1.15   0.251     -.162384     .620703
+-------------------------------------------------------------------------------
+
+. local pR2 = e(r2_p)
+
+. testparm $info_source 
+varlist required
+r(100);
+
+end of do-file
+
+r(100);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+.           
+. ************************************************************
+. *        S4 Additional Analysis and Robustness Tests       *
+. ************************************************************
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics female age edu1 edu3 edu4 edu5 // Education ref. cat.: e
+> du2 (Social Sciences)
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics i.income co2_pc ln_science freedom_house_index
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // S4.2.1 Global carbon price suggested to stay below stated temperature targe
+> t
+. ** Table S4: Effects of technological optimism mindset on global carbon price 
+> deemed necessary to reach stated temperature target.
+. * Binary Model [Price deemed appropriate to reach temperature target < 60 USD]
+. probit price_below temp_rise tech_ms_pca $info_source $orga cops_attended $soc
+> ioeconomics $countryspecifics treat_tech, vce(robust)
+variable ln_science not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. * Generate
+. gen ln_science = ln(science)
+(7,908 missing values generated)
+
+. 
+. alpha ln_carbon_price ln_carbon_price ln_price_home_now ln_price_oecd_now ln_p
+> rice_ldc_now ln_price_home_future ln_price_oecd_future ln_price_ldc_future, ge
+> n(ln_carbon_price_mean)
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     2.073274
+Number of items in the scale:            7
+Scale reliability coefficient:      0.9487
+
+. 
+. alpha carbon_price carbon_price price_home_now price_oecd_now price_ldc_now pr
+> ice_home_future price_oecd_future price_ldc_future, gen(carbon_price_mean)
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     93975.97
+Number of items in the scale:            7
+Scale reliability coefficient:      0.9286
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. 
+. // Figure Settings
+. * Text size: A & C
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. 
+. * Text size: B (A&C * 2/3)
+. global ratio_abc = 3/4
+
+. display $ratio_abc * $head
+7.5
+
+. display $ratio_abc * $legend  
+6
+
+. display $ratio_abc * $xytitle
+6
+
+. display $ratio_abc * $xylab  
+6
+
+. 
+. global head2    7.5  // Title
+
+. global legend2  6    // Legend
+
+. global xytitle2 6    // Axis title
+
+. global xylab2   6    // Scale label
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. // S4.2.1 Global carbon price suggested to stay below stated temperature targe
+> t
+. ** Table S4: Effects of technological optimism mindset on global carbon price 
+> deemed necessary to reach stated temperature target.
+. * Binary Model [Price deemed appropriate to reach temperature target < 60 USD]
+. probit price_below temp_rise tech_ms_pca $info_source $orga cops_attended $soc
+> ioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -190.08217  
+Iteration 1:   log pseudolikelihood = -148.43749  
+Iteration 2:   log pseudolikelihood = -147.97897  
+Iteration 3:   log pseudolikelihood = -147.97765  
+Iteration 4:   log pseudolikelihood = -147.97765  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      72.40
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -147.97765               Pseudo R2         =     0.2215
+
+-------------------------------------------------------------------------------
+              |               Robust
+  price_below |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0292443   .1064055    -0.27   0.783    -.2377952    .1793067
+  tech_ms_pca |   .1983585   .0695002     2.85   0.004     .0621407    .3345763
+    info_cc_1 |   .0936841   .2175132     0.43   0.667    -.3326339    .5200022
+    info_cc_2 |  -.1896056   .1910397    -0.99   0.321    -.5640366    .1848253
+    info_cc_3 |  -.2451769   .2690797    -0.91   0.362    -.7725633    .2822096
+    info_cc_4 |  -.1259417   .2460738    -0.51   0.609    -.6082374     .356354
+    info_cc_5 |   -.201801   .2897515    -0.70   0.486    -.7697036    .3661016
+        orga2 |   .1660557   .3199804     0.52   0.604    -.4610943    .7932058
+        orga3 |   .2565637   .2994008     0.86   0.391    -.3302512    .8433785
+        orga4 |   .2299727   .2441486     0.94   0.346    -.2485499    .7084952
+cops_attended |   .0424953   .0159301     2.67   0.008     .0112729    .0737176
+       female |   .1066711   .1860112     0.57   0.566    -.2579041    .4712464
+          age |   .0064935   .0091473     0.71   0.478    -.0114348    .0244219
+         edu1 |  -.3808794   .2307868    -1.65   0.099    -.8332132    .0714544
+         edu3 |  -.4099206   .2850736    -1.44   0.150    -.9686545    .1488134
+         edu4 |   -.852554   .3291467    -2.59   0.010     -1.49767   -.2074383
+         edu5 |  -.1304377   .3223751    -0.40   0.686    -.7622813     .501406
+              |
+ income_level |
+  Low-middle  |   .0222173   .2681305     0.08   0.934    -.5033089    .5477435
+Upper-middle  |   .1466604   .3644666     0.40   0.687     -.567681    .8610018
+        High  |  -1.353338   .5945172    -2.28   0.023    -2.518571   -.1881062
+              |
+       co2_pc |   .0842505   .0479463     1.76   0.079    -.0097225    .1782235
+   ln_science |   .0206125   .0463715     0.44   0.657    -.0702739    .1114989
+freedom_hou~x |   -.005319   .0048076    -1.11   0.269    -.0147417    .0041038
+   treat_tech |  -.4385727   .1985023    -2.21   0.027    -.8276301   -.0495153
+        _cons |   .8335259   .6580854     1.27   0.205    -.4562979     2.12335
+-------------------------------------------------------------------------------
+
+. local pR2 = e(r2_p)
+
+. testparm $info_source 
+
+ ( 1)  [price_below]info_cc_1 = 0
+ ( 2)  [price_below]info_cc_2 = 0
+ ( 3)  [price_below]info_cc_3 = 0
+ ( 4)  [price_below]info_cc_4 = 0
+ ( 5)  [price_below]info_cc_5 = 0
+
+           chi2(  5) =    3.75
+         Prob > chi2 =    0.5859
+
+. local F1 = r(p)
+
+. testparm $orga
+
+ ( 1)  [price_below]orga2 = 0
+ ( 2)  [price_below]orga3 = 0
+ ( 3)  [price_below]orga4 = 0
+
+           chi2(  3) =    1.46
+         Prob > chi2 =    0.6912
+
+. local F2 = r(p)
+
+. testparm $socioeconomics
+
+ ( 1)  [price_below]female = 0
+ ( 2)  [price_below]age = 0
+ ( 3)  [price_below]edu1 = 0
+ ( 4)  [price_below]edu3 = 0
+ ( 5)  [price_below]edu4 = 0
+ ( 6)  [price_below]edu5 = 0
+
+           chi2(  6) =    8.05
+         Prob > chi2 =    0.2342
+
+. local F3 = r(p)
+
+. testparm $countryspecifics
+
+ ( 1)  [price_below]2.income_level = 0
+ ( 2)  [price_below]3.income_level = 0
+ ( 3)  [price_below]4.income_level = 0
+ ( 4)  [price_below]co2_pc = 0
+ ( 5)  [price_below]ln_science = 0
+ ( 6)  [price_below]freedom_house_index = 0
+
+           chi2(  6) =   27.28
+         Prob > chi2 =    0.0001
+
+. local F4 = r(p)
+
+. margins , dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca info_cc_1 info_cc_2 info_cc_3 info_cc_4
+               info_cc_5 orga2 orga3 orga4 cops_attended female age edu1 edu3
+               edu4 edu5 2.income_level 3.income_level 4.income_level co2_pc
+               ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0088792   .0322445    -0.28   0.783    -.0720774    .0543189
+  tech_ms_pca |   .0602261   .0201178     2.99   0.003      .020796    .0996561
+    info_cc_1 |   .0284446   .0660137     0.43   0.667    -.1009398     .157829
+    info_cc_2 |  -.0575685   .0576832    -1.00   0.318    -.1706254    .0554884
+    info_cc_3 |  -.0744412   .0808321    -0.92   0.357    -.2328692    .0839869
+    info_cc_4 |  -.0382387   .0746485    -0.51   0.608    -.1845471    .1080697
+    info_cc_5 |  -.0612713   .0878379    -0.70   0.485    -.2334305    .1108879
+        orga2 |   .0504182   .0966685     0.52   0.602    -.1390485    .2398849
+        orga3 |   .0778985   .0905838     0.86   0.390    -.0996425    .2554394
+        orga4 |   .0698248   .0739147     0.94   0.345    -.0750454     .214695
+cops_attended |   .0129025   .0047004     2.74   0.006     .0036898    .0221152
+       female |   .0323877   .0564962     0.57   0.566    -.0783428    .1431183
+          age |   .0019716   .0027837     0.71   0.479    -.0034844    .0074276
+         edu1 |  -.1156435    .069231    -1.67   0.095    -.2513338    .0200469
+         edu3 |   -.124461    .085422    -1.46   0.145     -.291885    .0429629
+         edu4 |  -.2588544   .0982599    -2.63   0.008    -.4514403   -.0662685
+         edu5 |  -.0396038    .097966    -0.40   0.686    -.2316136     .152406
+              |
+ income_level |
+  Low-middle  |   .0072127   .0872864     0.08   0.934    -.1638655    .1782909
+Upper-middle  |   .0466057   .1166581     0.40   0.690    -.1820399    .2752513
+        High  |  -.4316592   .1637426    -2.64   0.008    -.7525887   -.1107297
+              |
+       co2_pc |   .0255803   .0141837     1.80   0.071    -.0022193    .0533799
+   ln_science |   .0062584   .0140786     0.44   0.657    -.0213351    .0338519
+freedom_hou~x |   -.001615     .00145    -1.11   0.265    -.0044568    .0012269
+   treat_tech |  -.1331605   .0592537    -2.25   0.025    -.2492956   -.0170253
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. outreg2 using "$working_ANALYSIS/results/tables/Table S4.doc", ///
+> addstat("Pseudo R2", `pR2', "Information sources", `F1', "Organization working
+>  for", `F2', "Socioeconomics", `F3', "Country-level", `F4')  adec(3) word ctit
+> le("Global carbon price < 60USD") dec(2) replace
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis/results/tables/Table S4.doc
+dir : seeout
+
+. 
+. * Continious model [Log price]
+. reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga cops_attended $so
+> cioeconomics $countryspecifics treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(24, 251)        =       3.63
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1742
+                                                Root MSE          =     1.5669
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .0180515   .1263665     0.14   0.887    -.2308223    .2669254
+  tech_ms_pca |  -.2219431    .079829    -2.78   0.006     -.379163   -.0647232
+    info_cc_1 |  -.1281223   .2755654    -0.46   0.642    -.6708375    .4145928
+    info_cc_2 |  -.0125619   .2126507    -0.06   0.953     -.431369    .4062451
+    info_cc_3 |   .4054134   .3524858     1.15   0.251    -.2887933     1.09962
+    info_cc_4 |    .070921   .2893723     0.25   0.807    -.4989863    .6408282
+    info_cc_5 |   .1178673   .3190532     0.37   0.712    -.5104952    .7462299
+        orga2 |   .0349271    .313322     0.11   0.911    -.5821482    .6520023
+        orga3 |   .0306203   .3744086     0.08   0.935    -.7067625    .7680031
+        orga4 |  -.0130911   .2802859    -0.05   0.963    -.5651031    .5389208
+cops_attended |   -.042449   .0166251    -2.55   0.011    -.0751915   -.0097065
+       female |    .115331    .191953     0.60   0.548    -.2627128    .4933749
+          age |  -.0032751   .0093319    -0.35   0.726    -.0216539    .0151037
+         edu1 |   .1496325   .2773459     0.54   0.590    -.3965893    .6958543
+         edu3 |   .5077044   .3417352     1.49   0.139    -.1653294    1.180738
+         edu4 |   .2874476   .3573968     0.80   0.422    -.4164313    .9913264
+         edu5 |   .1222294   .3617188     0.34   0.736    -.5901613    .8346201
+              |
+ income_level |
+  Low-middle  |  -.1038983   .3797361    -0.27   0.785    -.8517735    .6439769
+Upper-middle  |   .1119377   .4420973     0.25   0.800    -.7587553    .9826307
+        High  |   1.098839   .6263463     1.75   0.081    -.1347251    2.332403
+              |
+       co2_pc |  -.0416244   .0345482    -1.20   0.229    -.1096657    .0264169
+   ln_science |  -.0477475   .0544611    -0.88   0.381    -.1550064    .0595114
+freedom_hou~x |     .00175    .005758     0.30   0.761    -.0095901    .0130902
+   treat_tech |   .2423358   .2174846     1.11   0.266    -.1859915    .6706631
+        _cons |   3.623189   .6930893     5.23   0.000     2.258178    4.988201
+-------------------------------------------------------------------------------
+
+. local aR2 = e(r2_a)
+
+. testparm $info_source 
+
+ ( 1)  info_cc_1 = 0
+ ( 2)  info_cc_2 = 0
+ ( 3)  info_cc_3 = 0
+ ( 4)  info_cc_4 = 0
+ ( 5)  info_cc_5 = 0
+
+       F(  5,   251) =    0.46
+            Prob > F =    0.8056
+
+. local F1 = r(p)
+
+. testparm $orga
+
+ ( 1)  orga2 = 0
+ ( 2)  orga3 = 0
+ ( 3)  orga4 = 0
+
+       F(  3,   251) =    0.01
+            Prob > F =    0.9991
+
+. local F2 = r(p)
+
+. testparm $socioeconomics
+
+ ( 1)  female = 0
+ ( 2)  age = 0
+ ( 3)  edu1 = 0
+ ( 4)  edu3 = 0
+ ( 5)  edu4 = 0
+ ( 6)  edu5 = 0
+
+       F(  6,   251) =    0.48
+            Prob > F =    0.8207
+
+. local F3 = r(p)
+
+. testparm $countryspecifics
+
+ ( 1)  2.income_level = 0
+ ( 2)  3.income_level = 0
+ ( 3)  4.income_level = 0
+ ( 4)  co2_pc = 0
+ ( 5)  ln_science = 0
+ ( 6)  freedom_house_index = 0
+
+       F(  6,   251) =    3.63
+            Prob > F =    0.0018
+
+. local F4 = r(p)
+
+. outreg2 using"$working_ANALYSIS/results/tables/Table S4.doc", ///
+> addstat("Adjusted R2", `aR2', "Information sources", `F1', "Organization worki
+> ng for", `F2', "Socioeconomics", `F3', "Country-level", `F4') adec(3) word cti
+> tle("Global carbon price ln, USD") dec(2) append
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis/results/tables/Table S4.doc
+dir : seeout
+
+. 
+. * Binary Model Winsorized [Price deemed appropriate to reach temperature targe
+> t < 60 USD]
+. probit price_below temp_rise tech_ms_pca_win $info_source $orga cops_attended 
+> $socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -190.08217  
+Iteration 1:   log pseudolikelihood = -148.80226  
+Iteration 2:   log pseudolikelihood = -148.35703  
+Iteration 3:   log pseudolikelihood = -148.35577  
+Iteration 4:   log pseudolikelihood = -148.35577  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      71.95
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -148.35577               Pseudo R2         =     0.2195
+
+-------------------------------------------------------------------------------
+              |               Robust
+  price_below |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   -.029144   .1066452    -0.27   0.785    -.2381647    .1798766
+tech_ms_pca~n |   .2044454   .0758581     2.70   0.007     .0557662    .3531247
+    info_cc_1 |   .0865753   .2173226     0.40   0.690    -.3393691    .5125197
+    info_cc_2 |  -.1921347   .1907755    -1.01   0.314    -.5660478    .1817783
+    info_cc_3 |  -.2471741   .2691797    -0.92   0.358    -.7747567    .2804084
+    info_cc_4 |  -.1257171   .2457931    -0.51   0.609    -.6074626    .3560285
+    info_cc_5 |  -.1953533   .2899064    -0.67   0.500    -.7635595    .3728529
+        orga2 |   .1754234    .320449     0.55   0.584    -.4526452    .8034919
+        orga3 |   .2631116   .2997342     0.88   0.380    -.3243566    .8505798
+        orga4 |   .2325054   .2433362     0.96   0.339    -.2444247    .7094355
+cops_attended |   .0420796   .0159237     2.64   0.008     .0108698    .0732894
+       female |   .1046692   .1856419     0.56   0.573    -.2591824    .4685207
+          age |   .0062791   .0091503     0.69   0.493    -.0116551    .0242132
+         edu1 |  -.3761119   .2299504    -1.64   0.102    -.8268064    .0745827
+         edu3 |  -.4050441    .283982    -1.43   0.154    -.9616386    .1515504
+         edu4 |  -.8524911   .3291869    -2.59   0.010    -1.497685   -.2072967
+         edu5 |  -.1627037   .3237086    -0.50   0.615    -.7971608    .4717534
+              |
+ income_level |
+  Low-middle  |   .0256417   .2680108     0.10   0.924    -.4996499    .5509333
+Upper-middle  |     .14557    .363861     0.40   0.689    -.5675845    .8587246
+        High  |  -1.335042    .593576    -2.25   0.025    -2.498429   -.1716543
+              |
+       co2_pc |   .0834744   .0479022     1.74   0.081    -.0104122     .177361
+   ln_science |   .0190565   .0463919     0.41   0.681      -.07187     .109983
+freedom_hou~x |  -.0054476    .004808    -1.13   0.257    -.0148711    .0039758
+   treat_tech |  -.4329186   .1979462    -2.19   0.029     -.820886   -.0449511
+        _cons |    .852897   .6600241     1.29   0.196    -.4407264     2.14652
+-------------------------------------------------------------------------------
+
+. local pR2 = e(r2_p)
+
+. testparm $info_source 
+
+ ( 1)  [price_below]info_cc_1 = 0
+ ( 2)  [price_below]info_cc_2 = 0
+ ( 3)  [price_below]info_cc_3 = 0
+ ( 4)  [price_below]info_cc_4 = 0
+ ( 5)  [price_below]info_cc_5 = 0
+
+           chi2(  5) =    3.76
+         Prob > chi2 =    0.5848
+
+. local F1 = r(p)
+
+. testparm $orga
+
+ ( 1)  [price_below]orga2 = 0
+ ( 2)  [price_below]orga3 = 0
+ ( 3)  [price_below]orga4 = 0
+
+           chi2(  3) =    1.53
+         Prob > chi2 =    0.6757
+
+. local F2 = r(p)
+
+. testparm $socioeconomics
+
+ ( 1)  [price_below]female = 0
+ ( 2)  [price_below]age = 0
+ ( 3)  [price_below]edu1 = 0
+ ( 4)  [price_below]edu3 = 0
+ ( 5)  [price_below]edu4 = 0
+ ( 6)  [price_below]edu5 = 0
+
+           chi2(  6) =    7.87
+         Prob > chi2 =    0.2478
+
+. local F3 = r(p)
+
+. testparm $countryspecifics
+
+ ( 1)  [price_below]2.income_level = 0
+ ( 2)  [price_below]3.income_level = 0
+ ( 3)  [price_below]4.income_level = 0
+ ( 4)  [price_below]co2_pc = 0
+ ( 5)  [price_below]ln_science = 0
+ ( 6)  [price_below]freedom_house_index = 0
+
+           chi2(  6) =   27.12
+         Prob > chi2 =    0.0001
+
+. local F4 = r(p)
+
+. margins , dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca_win info_cc_1 info_cc_2 info_cc_3
+               info_cc_4 info_cc_5 orga2 orga3 orga4 cops_attended female age
+               edu1 edu3 edu4 edu5 2.income_level 3.income_level
+               4.income_level co2_pc ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0088726   .0324009    -0.27   0.784    -.0723772    .0546321
+tech_ms_pca~n |   .0622411    .022106     2.82   0.005      .018914    .1055681
+    info_cc_1 |   .0263568    .066141     0.40   0.690    -.1032771    .1559908
+    info_cc_2 |  -.0584932   .0577519    -1.01   0.311    -.1716848    .0546984
+    info_cc_3 |  -.0752493   .0810631    -0.93   0.353    -.2341301    .0836315
+    info_cc_4 |  -.0382731   .0747713    -0.51   0.609    -.1848223     .108276
+    info_cc_5 |  -.0594731   .0881409    -0.67   0.500    -.2322261      .11328
+        orga2 |   .0534056   .0970411     0.55   0.582    -.1367914    .2436027
+        orga3 |   .0801013   .0908981     0.88   0.378    -.0980557    .2582583
+        orga4 |   .0707836   .0738623     0.96   0.338    -.0739838     .215551
+cops_attended |   .0128107   .0047129     2.72   0.007     .0035736    .0220477
+       female |   .0318653   .0565461     0.56   0.573     -.078963    .1426937
+          age |   .0019116   .0027919     0.68   0.494    -.0035604    .0073836
+         edu1 |  -.1145029   .0692057    -1.65   0.098    -.2501436    .0211377
+         edu3 |   -.123311     .08533    -1.45   0.148    -.2905549    .0439328
+         edu4 |  -.2595311   .0985231    -2.63   0.008     -.452633   -.0664293
+         edu5 |  -.0495333   .0986322    -0.50   0.616    -.2428488    .1437822
+              |
+ income_level |
+  Low-middle  |    .008356   .0876111     0.10   0.924    -.1633586    .1800705
+Upper-middle  |   .0464768   .1169877     0.40   0.691    -.1828149    .2757685
+        High  |  -.4276198   .1650892    -2.59   0.010    -.7511886    -.104051
+              |
+       co2_pc |   .0254128   .0142104     1.79   0.074    -.0024391    .0532647
+   ln_science |   .0058015    .014124     0.41   0.681    -.0218811    .0334841
+freedom_hou~x |  -.0016585   .0014538    -1.14   0.254    -.0045078    .0011909
+   treat_tech |  -.1317971   .0592404    -2.22   0.026    -.2479061   -.0156881
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. outreg2 using "$working_ANALYSIS/results/tables/Table S4.doc", ///
+> addstat("Pseudo R2", `pR2', "Information sources", `F1', "Organization working
+>  for", `F2', "Socioeconomics", `F3', "Country-level", `F4')  adec(3) word ctit
+> le("Global carbon price < 60USD") dec(2) append
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis/results/tables/Table S4.doc
+dir : seeout
+
+. 
+. * Continious model Winsorized [Log price]
+. reg ln_carbon_price temp_rise tech_ms_pca_win $info_source $orga cops_attended
+>  $socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(24, 251)        =       3.63
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1739
+                                                Root MSE          =     1.5672
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .0216177     .12653     0.17   0.864    -.2275782    .2708135
+tech_ms_pca~n |  -.2387226   .0882788    -2.70   0.007    -.4125841    -.064861
+    info_cc_1 |  -.1219882    .275836    -0.44   0.659    -.6652362    .4212598
+    info_cc_2 |  -.0090601    .212684    -0.04   0.966    -.4279328    .4098127
+    info_cc_3 |   .4077626   .3520937     1.16   0.248    -.2856719    1.101197
+    info_cc_4 |   .0714076   .2888929     0.25   0.805    -.4975555    .6403708
+    info_cc_5 |   .1117914   .3195464     0.35   0.727    -.5175425    .7411253
+        orga2 |   .0256647   .3146915     0.08   0.935    -.5941077     .645437
+        orga3 |    .017321   .3743668     0.05   0.963    -.7199794    .7546215
+        orga4 |  -.0142493   .2802661    -0.05   0.959    -.5662223    .5377237
+cops_attended |  -.0421623   .0165809    -2.54   0.012    -.0748178   -.0095069
+       female |   .1163093   .1918711     0.61   0.545    -.2615732    .4941917
+          age |  -.0030288   .0093573    -0.32   0.746    -.0214577    .0154001
+         edu1 |   .1443919    .276324     0.52   0.602    -.3998173    .6886011
+         edu3 |   .5039635   .3411935     1.48   0.141    -.1680035    1.175931
+         edu4 |   .2826068   .3570043     0.79   0.429     -.420499    .9857127
+         edu5 |   .1517982   .3623967     0.42   0.676    -.5619277    .8655241
+              |
+ income_level |
+  Low-middle  |   -.102967   .3798733    -0.27   0.787    -.8511124    .6451783
+Upper-middle  |   .1137103   .4425715     0.26   0.797    -.7579167    .9853373
+        High  |   1.083835   .6271953     1.73   0.085     -.151401    2.319072
+              |
+       co2_pc |  -.0421936   .0348141    -1.21   0.227    -.1107587    .0263714
+   ln_science |    -.04662   .0543949    -0.86   0.392    -.1537486    .0605085
+freedom_hou~x |   .0018411   .0057617     0.32   0.750    -.0095063    .0131885
+   treat_tech |   .2381438   .2178145     1.09   0.275    -.1908332    .6671208
+        _cons |   3.604322   .6944228     5.19   0.000     2.236684     4.97196
+-------------------------------------------------------------------------------
+
+. local aR2 = e(r2_a)
+
+. testparm $info_source 
+
+ ( 1)  info_cc_1 = 0
+ ( 2)  info_cc_2 = 0
+ ( 3)  info_cc_3 = 0
+ ( 4)  info_cc_4 = 0
+ ( 5)  info_cc_5 = 0
+
+       F(  5,   251) =    0.46
+            Prob > F =    0.8068
+
+. local F1 = r(p)
+
+. testparm $orga
+
+ ( 1)  orga2 = 0
+ ( 2)  orga3 = 0
+ ( 3)  orga4 = 0
+
+       F(  3,   251) =    0.00
+            Prob > F =    0.9996
+
+. local F2 = r(p)
+
+. testparm $socioeconomics
+
+ ( 1)  female = 0
+ ( 2)  age = 0
+ ( 3)  edu1 = 0
+ ( 4)  edu3 = 0
+ ( 5)  edu4 = 0
+ ( 6)  edu5 = 0
+
+       F(  6,   251) =    0.47
+            Prob > F =    0.8318
+
+. local F3 = r(p)
+
+. testparm $countryspecifics
+
+ ( 1)  2.income_level = 0
+ ( 2)  3.income_level = 0
+ ( 3)  4.income_level = 0
+ ( 4)  co2_pc = 0
+ ( 5)  ln_science = 0
+ ( 6)  freedom_house_index = 0
+
+       F(  6,   251) =    3.49
+            Prob > F =    0.0025
+
+. local F4 = r(p)
+
+. outreg2 using"$working_ANALYSIS/results/tables/Table S4.doc", ///
+> addstat("Adjusted R2", `aR2', "Information sources", `F1', "Organization worki
+> ng for", `F2', "Socioeconomics", `F3', "Country-level", `F4') adec(3) word cti
+> tle("Global carbon price ln, USD") dec(2) append
+C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Dele
+> gates\8_Submission\NSUST\analysis/results/tables/Table S4.doc
+dir : seeout
+
+. 
+. 
+end of do-file
+
+. shellout using `"C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+>  SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/Table S4.d
+> oc"'
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. ** Table S5: Effects of technological optimism mindset on global carbon prices
+>  using different thresholds in the binary model
+. * Price < USD37
+. probit price_below_37 temp_rise tech_ms_pca $info_source $orga cops_attended $
+> socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -188.68435  
+Iteration 1:   log pseudolikelihood = -148.94899  
+Iteration 2:   log pseudolikelihood =  -148.4482  
+Iteration 3:   log pseudolikelihood = -148.44794  
+Iteration 4:   log pseudolikelihood = -148.44794  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      68.08
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -148.44794               Pseudo R2         =     0.2132
+
+-------------------------------------------------------------------------------
+              |               Robust
+price_belo~37 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0616862   .1046802    -0.59   0.556    -.2668557    .1434833
+  tech_ms_pca |   .2613585   .0724243     3.61   0.000     .1194096    .4033075
+    info_cc_1 |   .1583341    .210455     0.75   0.452    -.2541501    .5708184
+    info_cc_2 |  -.0524978   .1904926    -0.28   0.783    -.4258564    .3208608
+    info_cc_3 |   -.406462    .258701    -1.57   0.116    -.9135065    .1005826
+    info_cc_4 |  -.2070091    .245453    -0.84   0.399    -.6880882      .27407
+    info_cc_5 |  -.2463817   .2958011    -0.83   0.405    -.8261413    .3333778
+        orga2 |  -.3869886   .2879302    -1.34   0.179    -.9513214    .1773442
+        orga3 |   .5019422   .2895007     1.73   0.083    -.0654687    1.069353
+        orga4 |  -.0164838   .2610118    -0.06   0.950    -.5280574    .4950899
+cops_attended |   .0465934    .015929     2.93   0.003     .0153731    .0778137
+       female |   .0147041   .1839674     0.08   0.936    -.3458654    .3752736
+          age |   .0107971     .00863     1.25   0.211    -.0061174    .0277115
+         edu1 |   .1015602   .2315998     0.44   0.661     -.352367    .5554874
+         edu3 |  -.2415532   .2838077    -0.85   0.395    -.7978059    .3146996
+         edu4 |  -.2774297   .3428858    -0.81   0.418    -.9494736    .3946142
+         edu5 |   .0480081   .3442926     0.14   0.889     -.626793    .7228091
+              |
+ income_level |
+  Low-middle  |  -.1441089   .2623338    -0.55   0.583    -.6582738     .370056
+Upper-middle  |   .0615149   .3570826     0.17   0.863    -.6383541     .761384
+        High  |  -1.395065   .5859905    -2.38   0.017    -2.543585   -.2465446
+              |
+       co2_pc |   .0344727   .0467008     0.74   0.460    -.0570593    .1260046
+   ln_science |   .0011437   .0459167     0.02   0.980    -.0888514    .0911387
+freedom_hou~x |  -.0004419    .004751    -0.09   0.926    -.0097536    .0088698
+   treat_tech |  -.2455196   .1964351    -1.25   0.211    -.6305252     .139486
+        _cons |   .1264602   .6294019     0.20   0.841    -1.107145    1.360065
+-------------------------------------------------------------------------------
+
+. local r2_p = e(r2_p)
+
+. eststo table_5_1: margins, dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_37), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca info_cc_1 info_cc_2 info_cc_3 info_cc_4
+               info_cc_5 orga2 orga3 orga4 cops_attended female age edu1 edu3
+               edu4 edu5 2.income_level 3.income_level 4.income_level co2_pc
+               ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.0188004   .0318989    -0.59   0.556     -.081321    .0437203
+  tech_ms_pca |   .0796553   .0204526     3.89   0.000     .0395689    .1197418
+    info_cc_1 |   .0482562   .0640783     0.75   0.451    -.0773351    .1738474
+    info_cc_2 |      -.016   .0580326    -0.28   0.783    -.1297417    .0977417
+    info_cc_3 |  -.1238791   .0776308    -1.60   0.111    -.2760326    .0282744
+    info_cc_4 |   -.063091      .0746    -0.85   0.398    -.2093044    .0831224
+    info_cc_5 |  -.0750908   .0897143    -0.84   0.403    -.2509275    .1007459
+        orga2 |  -.1179441   .0874304    -1.35   0.177    -.2893045    .0534163
+        orga3 |    .152979   .0872224     1.75   0.079    -.0179737    .3239317
+        orga4 |  -.0050238     .07955    -0.06   0.950     -.160939    .1508913
+cops_attended |   .0142005    .004661     3.05   0.002     .0050651    .0233358
+       female |   .0044814   .0560696     0.08   0.936    -.1054129    .1143758
+          age |   .0032907   .0026201     1.26   0.209    -.0018445    .0084259
+         edu1 |   .0309529   .0707107     0.44   0.662    -.1076376    .1695434
+         edu3 |  -.0736192    .085948    -0.86   0.392    -.2420741    .0948358
+         edu4 |  -.0845534   .1042731    -0.81   0.417    -.2889248     .119818
+         edu5 |   .0146316   .1048807     0.14   0.889    -.1909307     .220194
+              |
+ income_level |
+  Low-middle  |  -.0499514   .0909404    -0.55   0.583    -.2281914    .1282886
+Upper-middle  |   .0212224   .1230673     0.17   0.863     -.219985    .2624298
+        High  |  -.4027451   .1509464    -2.67   0.008    -.6985946   -.1068956
+              |
+       co2_pc |   .0105064   .0142035     0.74   0.459     -.017332    .0383447
+   ln_science |   .0003486   .0139936     0.02   0.980    -.0270784    .0277756
+freedom_hou~x |  -.0001347   .0014477    -0.09   0.926    -.0029721    .0027027
+   treat_tech |   -.074828   .0593445    -1.26   0.207    -.1911411     .041485
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. estadd scalar r2_p = `r2_p'
+
+added scalar:
+               e(r2_p) =  .21324721
+
+. * Price < USD82
+. probit price_below_82 temp_rise tech_ms_pca $info_source $orga cops_attended $
+> socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -181.26592  
+Iteration 1:   log pseudolikelihood = -146.28402  
+Iteration 2:   log pseudolikelihood = -145.98548  
+Iteration 3:   log pseudolikelihood = -145.98479  
+Iteration 4:   log pseudolikelihood = -145.98479  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      67.07
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -145.98479               Pseudo R2         =     0.1946
+
+-------------------------------------------------------------------------------
+              |               Robust
+price_belo~82 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .1464739   .1087059     1.35   0.178    -.0665858    .3595335
+  tech_ms_pca |    .261654   .0691798     3.78   0.000      .126064     .397244
+    info_cc_1 |   .0603175   .2167269     0.28   0.781    -.3644595    .4850944
+    info_cc_2 |  -.1775911   .1933501    -0.92   0.358    -.5565503    .2013681
+    info_cc_3 |  -.0287318   .2664364    -0.11   0.914    -.5509375     .493474
+    info_cc_4 |  -.1205404   .2569026    -0.47   0.639    -.6240603    .3829796
+    info_cc_5 |  -.1170179   .2890999    -0.40   0.686    -.6836432    .4496074
+        orga2 |  -.1219636   .3026159    -0.40   0.687    -.7150798    .4711527
+        orga3 |  -.0031546   .3032545    -0.01   0.992    -.5975226    .5912134
+        orga4 |   .1577082   .2500693     0.63   0.528    -.3324185     .647835
+cops_attended |   .0401037   .0159743     2.51   0.012     .0087947    .0714127
+       female |   .1160333   .1818651     0.64   0.523    -.2404158    .4724823
+          age |   .0024428   .0087812     0.28   0.781     -.014768    .0196536
+         edu1 |  -.3058664   .2367143    -1.29   0.196     -.769818    .1580851
+         edu3 |  -.3299367   .2784807    -1.18   0.236    -.8757488    .2158755
+         edu4 |    -.36234   .3263462    -1.11   0.267    -1.001967    .2772868
+         edu5 |  -.0432372    .355067    -0.12   0.903    -.7391557    .6526812
+              |
+ income_level |
+  Low-middle  |   .0446531   .2705285     0.17   0.869    -.4855731    .5748793
+Upper-middle  |   .1025843   .3681381     0.28   0.781    -.6189531    .8241217
+        High  |  -1.314289   .5831945    -2.25   0.024    -2.457329   -.1712483
+              |
+       co2_pc |   .0969932   .0468331     2.07   0.038      .005202    .1887845
+   ln_science |   .0009705   .0472167     0.02   0.984    -.0915725    .0935135
+freedom_hou~x |  -.0003557   .0049354    -0.07   0.943    -.0100288    .0093175
+   treat_tech |  -.4668654   .1975312    -2.36   0.018    -.8540194   -.0797113
+        _cons |   .6247042   .6504702     0.96   0.337    -.6501941    1.899602
+-------------------------------------------------------------------------------
+
+. local r2_p = e(r2_p)
+
+. eststo table_5_2: margins, dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_82), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca info_cc_1 info_cc_2 info_cc_3 info_cc_4
+               info_cc_5 orga2 orga3 orga4 cops_attended female age edu1 edu3
+               edu4 edu5 2.income_level 3.income_level 4.income_level co2_pc
+               ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .0436912   .0323887     1.35   0.177    -.0197894    .1071719
+  tech_ms_pca |    .078048   .0190455     4.10   0.000     .0407194    .1153766
+    info_cc_1 |   .0179919    .064653     0.28   0.781    -.1087257    .1447095
+    info_cc_2 |  -.0529731   .0574053    -0.92   0.356    -.1654854    .0595392
+    info_cc_3 |  -.0085703   .0794203    -0.11   0.914    -.1642312    .1470906
+    info_cc_4 |  -.0359556   .0765335    -0.47   0.638    -.1859584    .1140472
+    info_cc_5 |  -.0349049   .0862152    -0.40   0.686    -.2038836    .1340738
+        orga2 |  -.0363801   .0904022    -0.40   0.687    -.2135652    .1408049
+        orga3 |   -.000941   .0904572    -0.01   0.992    -.1782339     .176352
+        orga4 |   .0470423   .0745231     0.63   0.528    -.0990203    .1931049
+cops_attended |   .0119624   .0046775     2.56   0.011     .0027946    .0211302
+       female |   .0346112   .0542218     0.64   0.523    -.0716615    .1408839
+          age |   .0007287   .0026223     0.28   0.781    -.0044109    .0058683
+         edu1 |   -.091236   .0702301    -1.30   0.194    -.2288844    .0464125
+         edu3 |  -.0984158    .082423    -1.19   0.232    -.2599619    .0631303
+         edu4 |  -.1080813   .0969537    -1.11   0.265     -.298107    .0819445
+         edu5 |  -.0128971   .1059539    -0.12   0.903    -.2205628    .1947686
+              |
+ income_level |
+  Low-middle  |   .0128755   .0787753     0.16   0.870    -.1415213    .1672723
+Upper-middle  |    .029099   .1054479     0.28   0.783    -.1775751    .2357731
+        High  |  -.4353626   .1660776    -2.62   0.009    -.7608687   -.1098566
+              |
+       co2_pc |   .0289318   .0136555     2.12   0.034     .0021675    .0556961
+   ln_science |   .0002895   .0140849     0.02   0.984    -.0273164    .0278954
+freedom_hou~x |  -.0001061    .001472    -0.07   0.943    -.0029911    .0027789
+   treat_tech |  -.1392598   .0579414    -2.40   0.016    -.2528229   -.0256968
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. estadd scalar r2_p = `r2_p'
+
+added scalar:
+               e(r2_p) =  .19463743
+
+. * Price < USD185
+. probit price_below_185 temp_rise tech_ms_pca $info_source $orga cops_attended 
+> $socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -135.00586  
+Iteration 1:   log pseudolikelihood = -120.62298  
+Iteration 2:   log pseudolikelihood = -120.42878  
+Iteration 3:   log pseudolikelihood = -120.42869  
+Iteration 4:   log pseudolikelihood = -120.42869  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      33.92
+                                                Prob > chi2       =     0.0861
+Log pseudolikelihood = -120.42869               Pseudo R2         =     0.1080
+
+-------------------------------------------------------------------------------
+              |               Robust
+price_bel~185 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .1373027   .1157579     1.19   0.236    -.0895787    .3641842
+  tech_ms_pca |   .1559989    .067664     2.31   0.021     .0233799    .2886179
+    info_cc_1 |   .1171047   .2249704     0.52   0.603    -.3238293    .5580386
+    info_cc_2 |   .0726465   .1978207     0.37   0.713     -.315075     .460368
+    info_cc_3 |   .1001541    .274938     0.36   0.716    -.4387146    .6390227
+    info_cc_4 |  -.2128351   .2704266    -0.79   0.431    -.7428616    .3171913
+    info_cc_5 |   .0550453   .3006437     0.18   0.855    -.5342056    .6442961
+        orga2 |   .0960507   .3225705     0.30   0.766    -.5361758    .7282772
+        orga3 |  -.2226362   .3096905    -0.72   0.472    -.8296184     .384346
+        orga4 |   .1321955   .2679906     0.49   0.622    -.3930564    .6574474
+cops_attended |   .0258597   .0169663     1.52   0.127    -.0073937    .0591131
+       female |   .1569425   .1961801     0.80   0.424    -.2275635    .5414485
+          age |   .0116795   .0089259     1.31   0.191     -.005815     .029174
+         edu1 |  -.0058932    .259706    -0.02   0.982    -.5149077    .5031213
+         edu3 |  -.3993591   .2871356    -1.39   0.164    -.9621345    .1634163
+         edu4 |  -.0809818   .3465368    -0.23   0.815    -.7601815     .598218
+         edu5 |    .311217   .4069955     0.76   0.444    -.4864794    1.108913
+              |
+ income_level |
+  Low-middle  |   .1506384    .303892     0.50   0.620     -.444979    .7462558
+Upper-middle  |   .0664741   .3948251     0.17   0.866    -.7073689     .840317
+        High  |  -.6700474   .5868111    -1.14   0.254    -1.820176    .4800811
+              |
+       co2_pc |   .0147197   .0465337     0.32   0.752    -.0764847    .1059242
+   ln_science |   .0570783   .0468913     1.22   0.224    -.0348271    .1489836
+freedom_hou~x |   .0020358   .0051435     0.40   0.692    -.0080454    .0121169
+   treat_tech |  -.1076889   .2054537    -0.52   0.600    -.5103707     .294993
+        _cons |  -.4333788   .6288847    -0.69   0.491     -1.66597    .7992126
+-------------------------------------------------------------------------------
+
+. local r2_p = e(r2_p)
+
+. eststo table_5_3: margins, dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_185), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca info_cc_1 info_cc_2 info_cc_3 info_cc_4
+               info_cc_5 orga2 orga3 orga4 cops_attended female age edu1 edu3
+               edu4 edu5 2.income_level 3.income_level 4.income_level co2_pc
+               ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .0333349   .0278776     1.20   0.232    -.0213042    .0879741
+  tech_ms_pca |   .0378741   .0162608     2.33   0.020     .0060035    .0697446
+    info_cc_1 |   .0284312   .0546263     0.52   0.603    -.0786343    .1354967
+    info_cc_2 |   .0176374   .0480659     0.37   0.714    -.0765701    .1118449
+    info_cc_3 |   .0243158   .0666601     0.36   0.715    -.1063355    .1549671
+    info_cc_4 |   -.051673   .0654587    -0.79   0.430    -.1799698    .0766237
+    info_cc_5 |   .0133641   .0729146     0.18   0.855    -.1295459    .1562742
+        orga2 |   .0233196   .0782996     0.30   0.766    -.1301448    .1767839
+        orga3 |  -.0540526   .0747922    -0.72   0.470    -.2006426    .0925375
+        orga4 |    .032095    .065124     0.49   0.622    -.0955458    .1597358
+cops_attended |   .0062783   .0041217     1.52   0.128    -.0018001    .0143568
+       female |   .0381032    .047496     0.80   0.422    -.0549873    .1311937
+          age |   .0028356    .002154     1.32   0.188    -.0013861    .0070573
+         edu1 |  -.0014308   .0630551    -0.02   0.982    -.1250166     .122155
+         edu3 |  -.0969581   .0689941    -1.41   0.160     -.232184    .0382678
+         edu4 |  -.0196611   .0841201    -0.23   0.815    -.1845335    .1452113
+         edu5 |   .0755586   .0988291     0.76   0.445    -.1181428      .26926
+              |
+ income_level |
+  Low-middle  |   .0317883   .0673482     0.47   0.637    -.1002118    .1637883
+Upper-middle  |   .0145863   .0874726     0.17   0.868    -.1568569    .1860295
+        High  |  -.1929108   .1666633    -1.16   0.247    -.5195649    .1337433
+              |
+       co2_pc |   .0035737   .0113095     0.32   0.752    -.0185926      .02574
+   ln_science |   .0138577   .0114292     1.21   0.225    -.0085432    .0362586
+freedom_hou~x |   .0004943   .0012486     0.40   0.692     -.001953    .0029415
+   treat_tech |  -.0261452   .0499015    -0.52   0.600    -.1239503      .07166
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. estadd scalar r2_p = `r2_p'
+
+added scalar:
+               e(r2_p) =  .10797439
+
+. * Price < USD281
+. probit price_below_281 temp_rise tech_ms_pca $info_source $orga cops_attended 
+> $socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Iteration 0:   log pseudolikelihood = -106.87062  
+Iteration 1:   log pseudolikelihood =  -93.82626  
+Iteration 2:   log pseudolikelihood = -93.151751  
+Iteration 3:   log pseudolikelihood = -93.149216  
+Iteration 4:   log pseudolikelihood = -93.149216  
+
+Probit regression                               Number of obs     =        276
+                                                Wald chi2(24)     =      40.23
+                                                Prob > chi2       =     0.0202
+Log pseudolikelihood = -93.149216               Pseudo R2         =     0.1284
+
+-------------------------------------------------------------------------------
+              |               Robust
+price_bel~281 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .3160592   .1394731     2.27   0.023     .0426969    .5894214
+  tech_ms_pca |   .1414488   .0732745     1.93   0.054    -.0021667    .2850643
+    info_cc_1 |   .2640385   .2519196     1.05   0.295    -.2297149    .7577919
+    info_cc_2 |  -.0216018   .2271041    -0.10   0.924    -.4667177    .4235141
+    info_cc_3 |   .1065999   .3073418     0.35   0.729    -.4957789    .7089787
+    info_cc_4 |  -.0548349   .2741883    -0.20   0.841    -.5922342    .4825644
+    info_cc_5 |  -.2597396    .343474    -0.76   0.450    -.9329362     .413457
+        orga2 |   .4156549   .3831844     1.08   0.278    -.3353728    1.166683
+        orga3 |  -.0270275   .3289464    -0.08   0.935    -.6717506    .6176955
+        orga4 |    .218177   .3256721     0.67   0.503    -.4201286    .8564826
+cops_attended |   .0256527   .0193309     1.33   0.184    -.0122351    .0635405
+       female |   .0297485   .2167464     0.14   0.891    -.3950667    .4545637
+          age |   .0060079   .0092676     0.65   0.517    -.0121562     .024172
+         edu1 |   .0853106   .2645426     0.32   0.747    -.4331833    .6038046
+         edu3 |  -.3638925   .3072687    -1.18   0.236    -.9661281    .2383431
+         edu4 |   .4047827   .4404046     0.92   0.358    -.4583943     1.26796
+         edu5 |   .2641735   .4180142     0.63   0.527    -.5551192    1.083466
+              |
+ income_level |
+  Low-middle  |  -.0962713   .3052659    -0.32   0.752    -.6945815    .5020389
+Upper-middle  |  -.2939992   .4112389    -0.71   0.475    -1.100013    .5120144
+        High  |  -1.326299   .6288594    -2.11   0.035    -2.558841   -.0937575
+              |
+       co2_pc |   .1177283   .0651121     1.81   0.071    -.0098891    .2453457
+   ln_science |   .0748493   .0497299     1.51   0.132    -.0226194    .1723181
+freedom_hou~x |   .0070018   .0055254     1.27   0.205    -.0038278    .0178314
+   treat_tech |   .0566598   .2373814     0.24   0.811    -.4085992    .5219187
+        _cons |  -.5772303   .6713342    -0.86   0.390    -1.893021    .7385605
+-------------------------------------------------------------------------------
+
+. local r2_p = e(r2_p)
+
+. eststo table_5_4: margins, dydx(*) post
+
+Average marginal effects                        Number of obs     =        276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_281), predict()
+dy/dx w.r.t. : temp_rise tech_ms_pca info_cc_1 info_cc_2 info_cc_3 info_cc_4
+               info_cc_5 orga2 orga3 orga4 cops_attended female age edu1 edu3
+               edu4 edu5 2.income_level 3.income_level 4.income_level co2_pc
+               ln_science freedom_house_index treat_tech
+
+-------------------------------------------------------------------------------
+              |            Delta-method
+              |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |   .0582921   .0256003     2.28   0.023     .0081164    .1084677
+  tech_ms_pca |    .026088   .0137304     1.90   0.057    -.0008231     .052999
+    info_cc_1 |   .0486977     .04633     1.05   0.293    -.0421074    .1395027
+    info_cc_2 |  -.0039841   .0418769    -0.10   0.924    -.0860613    .0780931
+    info_cc_3 |   .0196606    .056603     0.35   0.728    -.0912792    .1306005
+    info_cc_4 |  -.0101134   .0505415    -0.20   0.841     -.109173    .0889461
+    info_cc_5 |  -.0479048   .0639553    -0.75   0.454    -.1732548    .0774452
+        orga2 |   .0766609   .0709303     1.08   0.280    -.0623599    .2156817
+        orga3 |  -.0049848   .0606311    -0.08   0.934    -.1238196      .11385
+        orga4 |   .0402393    .059902     0.67   0.502    -.0771666    .1576451
+cops_attended |   .0047312   .0035679     1.33   0.185    -.0022618    .0117242
+       female |   .0054866   .0399625     0.14   0.891    -.0728384    .0838117
+          age |   .0011081   .0017085     0.65   0.517    -.0022406    .0044567
+         edu1 |   .0157342   .0486328     0.32   0.746    -.0795845    .1110528
+         edu3 |  -.0671141   .0568974    -1.18   0.238     -.178631    .0444027
+         edu4 |   .0746557    .080618     0.93   0.354    -.0833526     .232664
+         edu5 |   .0487226   .0771586     0.63   0.528    -.1025055    .1999506
+              |
+ income_level |
+  Low-middle  |  -.0132448   .0411687    -0.32   0.748    -.0939339    .0674443
+Upper-middle  |  -.0447889   .0631412    -0.71   0.478    -.1685433    .0789655
+        High  |  -.2994215   .1435739    -2.09   0.037    -.5808212   -.0180218
+              |
+       co2_pc |   .0217131   .0123018     1.77   0.078     -.002398    .0458242
+   ln_science |   .0138048   .0092696     1.49   0.136    -.0043633    .0319728
+freedom_hou~x |   .0012914   .0010192     1.27   0.205    -.0007062    .0032889
+   treat_tech |     .01045   .0438181     0.24   0.812    -.0754319    .0963319
+-------------------------------------------------------------------------------
+Note: dy/dx for factor levels is the discrete change from the base level.
+
+. estadd scalar r2_p = `r2_p'
+
+added scalar:
+               e(r2_p) =  .12839263
+
+. 
+. esttab table_5_1 table_5_2 table_5_3 table_5_4 using  "$working_ANALYSIS/resul
+> ts/tables/Table S5.rtf", se mtitles("Price below 37USD" "Price below 82USD" "P
+> rice below 185USD" "Price below 281USD") b(%4.2f) order(tech_ms_pca Info_sourc
+> e $info_source Orga_working $orga SocioEcon cops_attended $socioeconomics Coun
+> try-level)  label stats(N r2_p, labels("N" "Pseudo R-squared" ) fmt(%4.0f %4.2
+> f)) star(* 0.10 ** 0.05 *** 0.01) varlabels(,elist(weight:_cons "{break}{hline
+>  @width}")) nonotes replace
+(output written to C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+>  SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/Table S5.r
+> tf)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. esttab table_5_1 table_5_2 table_5_3 table_5_4 using  "$working_ANALYSIS/resul
+> ts/tables/Table S5.rtf", se mtitles("Price below 37USD" "Price below 82USD" "P
+> rice below 185USD" "Price below 281USD") b(%4.2f) order(temp_rise tech_ms_pca 
+> Info_source $info_source Orga_working $orga SocioEcon cops_attended $socioecon
+> omics Country-level)  label stats(N r2_p, labels("N" "Pseudo R-squared" ) fmt(
+> %4.0f %4.2f)) star(* 0.10 ** 0.05 *** 0.01) varlabels(,elist(weight:_cons "{br
+> eak}{hline @width}")) nonotes replace
+(output written to C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+>  SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/Table S5.r
+> tf)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * Table S6: Effects of technological optimism mindset on global carbon prices 
+> excluding participants naming ambitious temperature targets (≤1.5°C) and low g
+> lobal carbon prices at the same time
+. foreach x in 1 5 10 20 30 40 50 {
+  2.         gen price_below_`x' = 0
+  3.         replace price_below_`x' = 1 if carbon_price < `x' & temp_rise <= 2
+  4. }
+(7 real changes made)
+(18 real changes made)
+(32 real changes made)
+(69 real changes made)
+(97 real changes made)
+(108 real changes made)
+(113 real changes made)
+
+. 
+. eststo table_6_1:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_1  =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        269
+                                                F(24, 244)        =       4.22
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2032
+                                                Root MSE          =     1.4419
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.1025293   .1113081    -0.92   0.358    -.3217766     .116718
+  tech_ms_pca |   -.266297   .0662088    -4.02   0.000    -.3967107   -.1358833
+    info_cc_1 |  -.3152578    .256966    -1.23   0.221    -.8214125    .1908969
+    info_cc_2 |   .0219939   .1983837     0.11   0.912    -.3687692    .4127571
+    info_cc_3 |   .0583235   .3130638     0.19   0.852    -.5583289     .674976
+    info_cc_4 |   .2473445   .2679065     0.92   0.357    -.2803601    .7750491
+    info_cc_5 |   .1899205   .2964321     0.64   0.522    -.3939719     .773813
+        orga2 |  -.2294352   .3057229    -0.75   0.454    -.8316279    .3727575
+        orga3 |   -.042235   .3688399    -0.11   0.909    -.7687515    .6842816
+        orga4 |  -.0701256   .2557072    -0.27   0.784    -.5738008    .4335495
+cops_attended |  -.0396169   .0156469    -2.53   0.012    -.0704371   -.0087966
+       female |  -.0270433   .1875279    -0.14   0.885    -.3964233    .3423366
+          age |   .0022237   .0088751     0.25   0.802    -.0152579    .0197053
+         edu1 |   .2394749   .2574754     0.93   0.353    -.2676831     .746633
+         edu3 |   .5143107   .3302551     1.56   0.121    -.1362039    1.164825
+         edu4 |   .2106674    .344362     0.61   0.541    -.4676341    .8889689
+         edu5 |   .0282756   .3494076     0.08   0.936    -.6599644    .7165156
+              |
+ income_level |
+  Low-middle  |   .0770048   .3620672     0.21   0.832    -.6361714     .790181
+Upper-middle  |   .1975549   .4318244     0.46   0.648    -.6530244    1.048134
+        High  |   1.378551   .6004468     2.30   0.023      .195831    2.561272
+              |
+       co2_pc |  -.0401913   .0321023    -1.25   0.212    -.1034243    .0230417
+   ln_science |  -.0627937   .0493822    -1.27   0.205    -.1600634    .0344761
+freedom_hou~x |   .0000437   .0054556     0.01   0.994    -.0107024    .0107899
+   treat_tech |   .2342906   .1978164     1.18   0.237    -.1553551    .6239363
+        _cons |   3.936766   .6613454     5.95   0.000     2.634091     5.23944
+-------------------------------------------------------------------------------
+
+. eststo table_6_2:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_5  =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        258
+                                                F(24, 233)        =       3.89
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1978
+                                                Root MSE          =      1.356
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.2208198    .106282    -2.08   0.039    -.4302163   -.0114234
+  tech_ms_pca |  -.1916974   .0629275    -3.05   0.003    -.3156769   -.0677179
+    info_cc_1 |  -.2365527   .2479419    -0.95   0.341    -.7250472    .2519418
+    info_cc_2 |   .1839464   .1946435     0.95   0.346    -.1995397    .5674326
+    info_cc_3 |  -.0588706   .3060172    -0.19   0.848    -.6617849    .5440438
+    info_cc_4 |   .3830221   .2642235     1.45   0.149    -.1375505    .9035946
+    info_cc_5 |    .189528   .2913574     0.65   0.516    -.3845036    .7635596
+        orga2 |  -.0947776   .2897544    -0.33   0.744    -.6656509    .4760958
+        orga3 |  -.0492989   .3436455    -0.14   0.886    -.7263484    .6277506
+        orga4 |  -.2192712   .2492004    -0.88   0.380    -.7102452    .2717028
+cops_attended |   -.040938   .0147674    -2.77   0.006    -.0700327   -.0118433
+       female |  -.0770235    .180563    -0.43   0.670    -.4327684    .2787214
+          age |  -.0046659   .0083768    -0.56   0.578    -.0211697     .011838
+         edu1 |   .0915525     .24749     0.37   0.712    -.3960517    .5791566
+         edu3 |   .4477443    .308947     1.45   0.149    -.1609423    1.056431
+         edu4 |   .0026931   .3406957     0.01   0.994    -.6685448    .6739309
+         edu5 |  -.1548235   .3497883    -0.44   0.658    -.8439755    .5343284
+              |
+ income_level |
+  Low-middle  |   .1145852   .3461706     0.33   0.741    -.5674393    .7966096
+Upper-middle  |   .1657718   .4176471     0.40   0.692    -.6570755    .9886191
+        High  |   1.331379   .5823266     2.29   0.023       .18408    2.478677
+              |
+       co2_pc |  -.0400171   .0310391    -1.29   0.199    -.1011704    .0211361
+   ln_science |  -.0325526   .0459593    -0.71   0.479    -.1231015    .0579963
+freedom_hou~x |  -.0027314    .005251    -0.52   0.603    -.0130769     .007614
+   treat_tech |   .1436031   .1914123     0.75   0.454    -.2335169     .520723
+        _cons |   4.513062   .6413683     7.04   0.000      3.24944    5.776684
+-------------------------------------------------------------------------------
+
+. eststo table_6_3:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_10 =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        244
+                                                F(24, 219)        =       4.19
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2193
+                                                Root MSE          =      1.287
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.2695279   .1034013    -2.61   0.010    -.4733169    -.065739
+  tech_ms_pca |  -.2173072   .0573507    -3.79   0.000    -.3303372   -.1042773
+    info_cc_1 |  -.2010834   .2477215    -0.81   0.418    -.6893067    .2871398
+    info_cc_2 |   .1690812   .1945616     0.87   0.386    -.2143716     .552534
+    info_cc_3 |  -.1348402   .2933679    -0.46   0.646     -.713026    .4433455
+    info_cc_4 |   .2741537   .2586888     1.06   0.290    -.2356846     .783992
+    info_cc_5 |   .3359988   .3062402     1.10   0.274    -.2675564    .9395539
+        orga2 |  -.1013906   .2868859    -0.35   0.724    -.6668012    .4640199
+        orga3 |  -.0594045   .3261917    -0.18   0.856    -.7022812    .5834722
+        orga4 |  -.1131471   .2506536    -0.45   0.652    -.6071491    .3808548
+cops_attended |  -.0331112   .0155627    -2.13   0.034     -.063783   -.0024394
+       female |  -.1773099   .1762765    -1.01   0.316    -.5247254    .1701057
+          age |  -.0101188   .0083488    -1.21   0.227     -.026573    .0063355
+         edu1 |   .1690399   .2442993     0.69   0.490    -.3124387    .6505186
+         edu3 |   .4380098   .3026092     1.45   0.149    -.1583893    1.034409
+         edu4 |   .0662635   .3308782     0.20   0.841    -.5858496    .7183765
+         edu5 |   -.075363   .3234834    -0.23   0.816     -.712902    .5621761
+              |
+ income_level |
+  Low-middle  |  -.1372621   .3506705    -0.39   0.696     -.828383    .5538587
+Upper-middle  |  -.0142194   .4120084    -0.03   0.972    -.8262284    .7977895
+        High  |    1.03777   .5794961     1.79   0.075     -.104333    2.179873
+              |
+       co2_pc |  -.0442023   .0323092    -1.37   0.173    -.1078791    .0194746
+   ln_science |  -.0387156    .046033    -0.84   0.401    -.1294401    .0520088
+freedom_hou~x |   -.003437   .0052489    -0.65   0.513    -.0137818    .0069077
+   treat_tech |   .2147702   .1909369     1.12   0.262    -.1615389    .5910793
+        _cons |   5.157421   .6478743     7.96   0.000     3.880555    6.434288
+-------------------------------------------------------------------------------
+
+. eststo table_6_4:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_20 =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        207
+                                                F(24, 182)        =       3.89
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2638
+                                                Root MSE          =     1.1693
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.4722914   .0991866    -4.76   0.000    -.6679949   -.2765879
+  tech_ms_pca |  -.1447331   .0586973    -2.47   0.015    -.2605478   -.0289185
+    info_cc_1 |  -.2819283   .2416762    -1.17   0.245    -.7587758    .1949192
+    info_cc_2 |   .0667664   .1902853     0.35   0.726    -.3086826    .4422153
+    info_cc_3 |  -.0647807   .3042388    -0.21   0.832    -.6650694    .5355079
+    info_cc_4 |   .0015357   .2675226     0.01   0.995    -.5263089    .5293804
+    info_cc_5 |   .0807286   .3137326     0.26   0.797    -.5382923    .6997494
+        orga2 |  -.1008361   .2860113    -0.35   0.725    -.6651606    .4634883
+        orga3 |   .1924153   .3633455     0.53   0.597    -.5244959    .9093264
+        orga4 |     .12206   .2319012     0.53   0.599    -.3355005    .5796206
+cops_attended |  -.0153456   .0190628    -0.80   0.422    -.0529581     .022267
+       female |  -.1150643   .1689984    -0.68   0.497    -.4485125    .2183838
+          age |  -.0089652   .0084544    -1.06   0.290    -.0256465    .0077161
+         edu1 |   .1294929   .2537006     0.51   0.610    -.3710797    .6300655
+         edu3 |   .3656864   .2983739     1.23   0.222    -.2230304    .9544033
+         edu4 |   .1949127   .3045885     0.64   0.523     -.406066    .7958914
+         edu5 |   -.282521   .3352994    -0.84   0.401    -.9440948    .3790528
+              |
+ income_level |
+  Low-middle  |  -.3806575   .3631302    -1.05   0.296    -1.097144    .3358289
+Upper-middle  |  -.2882446   .4021355    -0.72   0.474    -1.081692    .5052026
+        High  |   .2438529   .5691141     0.43   0.669     -.879057    1.366763
+              |
+       co2_pc |  -.0573551    .029594    -1.94   0.054    -.1157467    .0010364
+   ln_science |   -.039054   .0448549    -0.87   0.385    -.1275564    .0494484
+freedom_hou~x |   .0038924   .0052135     0.75   0.456    -.0063942    .0141791
+   treat_tech |   .3297359   .1930492     1.71   0.089    -.0511665    .7106382
+        _cons |   5.974502   .6894294     8.67   0.000       4.6142    7.334805
+-------------------------------------------------------------------------------
+
+. eststo table_6_5:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_30 =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        179
+                                                F(24, 154)        =       3.70
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.3161
+                                                Root MSE          =     1.1033
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.5642608   .1018292    -5.54   0.000    -.7654231   -.3630985
+  tech_ms_pca |  -.1189258   .0601116    -1.98   0.050    -.2376756   -.0001761
+    info_cc_1 |  -.1779807   .2491249    -0.71   0.476     -.670124    .3141627
+    info_cc_2 |   .1047012   .2013475     0.52   0.604    -.2930583    .5024607
+    info_cc_3 |  -.1851949    .327492    -0.57   0.573    -.8321515    .4617617
+    info_cc_4 |  -.0842906   .2844258    -0.30   0.767    -.6461704    .4775891
+    info_cc_5 |    .102553   .3464692     0.30   0.768    -.5818928    .7869988
+        orga2 |  -.2012785   .2808794    -0.72   0.475    -.7561524    .3535954
+        orga3 |    .187314   .3749689     0.50   0.618    -.5534327    .9280606
+        orga4 |  -.0542706    .246223    -0.22   0.826    -.5406813    .4321401
+cops_attended |   .0163165   .0197107     0.83   0.409    -.0226218    .0552547
+       female |  -.0684064   .1704665    -0.40   0.689     -.405161    .2683482
+          age |   -.008502    .008912    -0.95   0.342    -.0261075    .0091035
+         edu1 |   .2719163   .2637931     1.03   0.304    -.2492039    .7930365
+         edu3 |   .6596843   .3028385     2.18   0.031     .0614305    1.257938
+         edu4 |   .1666772   .3189151     0.52   0.602    -.4633358    .7966901
+         edu5 |  -.0493303   .3665893    -0.13   0.893     -.773523    .6748624
+              |
+ income_level |
+  Low-middle  |  -.4031779   .3628042    -1.11   0.268    -1.119893    .3135375
+Upper-middle  |  -.3281297   .4157132    -0.79   0.431    -1.149366    .4931068
+        High  |  -.0161265   .5480865    -0.03   0.977    -1.098865    1.066612
+              |
+       co2_pc |  -.0576917   .0307028    -1.88   0.062    -.1183446    .0029612
+   ln_science |  -.0578405   .0463162    -1.25   0.214    -.1493377    .0336567
+freedom_hou~x |   .0045246   .0053695     0.84   0.401    -.0060828    .0151319
+   treat_tech |   .2384039   .2011264     1.19   0.238    -.1589189    .6357268
+        _cons |   6.327572   .6801205     9.30   0.000     4.984002    7.671142
+-------------------------------------------------------------------------------
+
+. eststo table_6_6:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_40 =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        168
+                                                F(24, 143)        =       3.33
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.3231
+                                                Root MSE          =     1.0967
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.6185666   .1052714    -5.88   0.000    -.8266557   -.4104775
+  tech_ms_pca |  -.0855565   .0626358    -1.37   0.174    -.2093682    .0382552
+    info_cc_1 |  -.2270147    .255479    -0.89   0.376    -.7320181    .2779886
+    info_cc_2 |   .0899065   .2077159     0.43   0.666    -.3206839     .500497
+    info_cc_3 |  -.1252335   .3573857    -0.35   0.727     -.831675    .5812081
+    info_cc_4 |   .0269548   .2900625     0.09   0.926    -.5464096    .6003191
+    info_cc_5 |   .0195074   .3519617     0.06   0.956    -.6762126    .7152274
+        orga2 |  -.3142251   .2800625    -1.12   0.264    -.8678224    .2393723
+        orga3 |   .3491941   .3692793     0.95   0.346    -.3807574    1.079146
+        orga4 |  -.0620945   .2580726    -0.24   0.810    -.5722246    .4480357
+cops_attended |   .0146402   .0198357     0.74   0.462     -.024569    .0538493
+       female |  -.0382058   .1790187    -0.21   0.831    -.3920707    .3156591
+          age |  -.0056956   .0091769    -0.62   0.536    -.0238355    .0124443
+         edu1 |    .369358   .2663485     1.39   0.168    -.1571309    .8958469
+         edu3 |   .5874723   .3075304     1.91   0.058    -.0204207    1.195365
+         edu4 |   .1725095   .3338866     0.52   0.606    -.4874814    .8325005
+         edu5 |  -.0477339    .378305    -0.13   0.900    -.7955265    .7000587
+              |
+ income_level |
+  Low-middle  |  -.2888099   .3737322    -0.77   0.441    -1.027563    .4499437
+Upper-middle  |  -.1161487   .4189821    -0.28   0.782    -.9443473    .7120499
+        High  |   .1477907   .5552038     0.27   0.790    -.9496762    1.245258
+              |
+       co2_pc |  -.0496839    .033462    -1.48   0.140    -.1158279    .0164602
+   ln_science |  -.0506194   .0478176    -1.06   0.292    -.1451401    .0439013
+freedom_hou~x |   .0026803   .0055027     0.49   0.627    -.0081968    .0135575
+   treat_tech |   .2684822   .2057187     1.31   0.194    -.1381604    .6751248
+        _cons |   6.190675   .6847855     9.04   0.000     4.837065    7.544285
+-------------------------------------------------------------------------------
+
+. eststo table_6_7:reg ln_carbon_price temp_rise tech_ms_pca $info_source $orga 
+> cops_attended $socioeconomics $countryspecifics treat_tech if price_below_50 =
+> = 0, vce(robust)
+
+Linear regression                               Number of obs     =        163
+                                                F(24, 138)        =       3.19
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.3296
+                                                Root MSE          =     1.0965
+
+-------------------------------------------------------------------------------
+              |               Robust
+ln_carbon_p~e |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------+----------------------------------------------------------------
+    temp_rise |  -.6385211   .1073996    -5.95   0.000    -.8508827   -.4261596
+  tech_ms_pca |  -.0852949   .0636797    -1.34   0.183    -.2112089    .0406191
+    info_cc_1 |  -.2226645   .2527262    -0.88   0.380    -.7223809    .2770519
+    info_cc_2 |   .0824839    .216427     0.38   0.704     -.345458    .5104259
+    info_cc_3 |  -.0617431   .3666255    -0.17   0.867    -.7866731    .6631868
+    info_cc_4 |   .0541574    .292905     0.18   0.854    -.5250046    .6333194
+    info_cc_5 |  -.0311037   .3523252    -0.09   0.930    -.7277575    .6655501
+        orga2 |  -.1198634   .2840107    -0.42   0.674    -.6814388     .441712
+        orga3 |   .2943106   .3679449     0.80   0.425    -.4332281    1.021849
+        orga4 |   -.094905   .2592564    -0.37   0.715    -.6075336    .4177235
+cops_attended |   .0084226   .0202513     0.42   0.678    -.0316204    .0484656
+       female |   -.016795   .1795778    -0.09   0.926    -.3718747    .3382847
+          age |   -.008262   .0091371    -0.90   0.367    -.0263289    .0098049
+         edu1 |   .2504713   .2691115     0.93   0.354    -.2816438    .7825864
+         edu3 |   .5125507   .3128314     1.64   0.104    -.1060119    1.131113
+         edu4 |   .0706521   .3358512     0.21   0.834    -.5934278     .734732
+         edu5 |  -.1269113    .407493    -0.31   0.756    -.9326486    .6788259
+              |
+ income_level |
+  Low-middle  |  -.3266754   .3740583    -0.87   0.384    -1.066302    .4129513
+Upper-middle  |   -.176802   .4277371    -0.41   0.680    -1.022568     .668964
+        High  |   .0719887   .5661685     0.13   0.899    -1.047498    1.191476
+              |
+       co2_pc |  -.0462158   .0339078    -1.36   0.175    -.1132619    .0208302
+   ln_science |  -.0408124   .0483733    -0.84   0.400     -.136461    .0548362
+freedom_hou~x |   .0023737   .0055938     0.42   0.672    -.0086869    .0134343
+   treat_tech |   .2173487   .2090543     1.04   0.300    -.1960151    .6307125
+        _cons |   6.445914   .6917405     9.32   0.000     5.078133    7.813695
+-------------------------------------------------------------------------------
+
+. 
+. esttab table_6_1 table_6_2 table_6_3 table_6_4 table_6_5 table_6_6 table_6_7 u
+> sing "$working_ANALYSIS/results/tables/Table S6.rtf", se mtitles("price<1USD" 
+> "price<5USD" "price<10USD" "price<20USD" "price<30USD" "price<40USD" "price<50
+> USD" "price<60USD") b(%4.2f) order(temp_rise tech_ms_pca Info_source $info_sou
+> rce Orga_working $orga SocioEcon cops_attended $socioeconomics Income-level)  
+> label stats(N r2_a, labels("N" "Adjusted R-squared" ) fmt(%4.0f %4.2f)) star(*
+>  0.10 ** 0.05 *** 0.01) varlabels(,elist(weight:_cons "{break}{hline @width}")
+> ) nonotes replace
+(output written to C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper
+>  SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/tables/Table S6.r
+> tf)
+
+. 
+. 
+end of do-file
+
+. index carbon_price price_home_now price_oecd_now price_ldc_now price_home_futu
+> re price_oecd_future price_ldc_future
+command index is unrecognized
+r(199);
+
+. alpha carbon_price price_home_now price_oecd_now price_ldc_now price_home_futu
+> re price_oecd_future price_ldc_future
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     93975.97
+Number of items in the scale:            7
+Scale reliability coefficient:      0.9286
+
+. pwcorr carbon_price price_home_now price_oecd_now price_ldc_now price_home_fut
+> ure price_oecd_future price_ldc_future, sig
+
+             | carbon~e price_.. pr~d_now pr~c_now price_.. price_.. price_..
+-------------+---------------------------------------------------------------
+carbon_price |   1.0000 
+             |
+             |
+price_home~w |   0.5690   1.0000 
+             |   0.0000
+             |
+price_oecd~w |   0.7659   0.7118   1.0000 
+             |   0.0000   0.0000
+             |
+price_ldc_~w |   0.4889   0.8423   0.6188   1.0000 
+             |   0.0000   0.0000   0.0000
+             |
+price_home~e |   0.5526   0.6955   0.6628   0.6240   1.0000 
+             |   0.0000   0.0000   0.0000   0.0000
+             |
+price_oecd~e |   0.6894   0.5572   0.7531   0.5156   0.8326   1.0000 
+             |   0.0000   0.0000   0.0000   0.0000   0.0000
+             |
+price_ldc_~e |   0.5656   0.5946   0.6191   0.7033   0.8860   0.7775   1.0000 
+             |   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+             |
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Bj
+> örn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis
+> "
+
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. *---------------------------------------
+. *   I) FIGURE 1 
+. *------------------------------
+. // Figure Settings
+. * Text size
+. global head     10 // Title
+
+. global legend    8 // Legend
+
+. global xytitle   8 // Axis title
+
+. global xylab     8 // Scale label
+
+. global fysize    22 
+
+. global textsize  14 pt
+
+. 
+. 
+. 
+. // Fig 1a: Distribution of answers towards technological optimism ite
+> ms
+. ** Catplot for each item
+. global margins 145 0 1 3 // set margins for all
+
+. global pos_text1 -15 50
+
+. global pos_text2  50 -4
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Fig 1b
+. ** Global carbon price and temperature rise 
+. * Global Generate variable defining position of observations on x-axi
+> s
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped
+> ) unique
+
+. egen temp_rise_cropped_freq = count(carbon_price_cap), by(temp_rise_c
+> ropped)
+
+. gen  temp_rise_cropped_jitter2 = temp_rise_cropped + (carbon_price_ra
+> nk *.006) - (temp_rise_cropped_freq / 2 * 0.006)
+
+. 
+. * National: Generate variable defining position of observations on x-
+> axis
+. foreach var in now future {
+  2. egen price_rank_h_`var' = rank(price_home_`var'_cap), unique
+  3. }
+
+. 
+. gen h_now_jitter = .
+(276 missing values generated)
+
+. replace h_now_jitter = .5 + (price_rank_h_now *.001)
+(276 real changes made)
+
+. gen h_future_jitter = .
+(276 missing values generated)
+
+. replace h_future_jitter = 1 + (price_rank_h_future * .001)
+(276 real changes made)
+
+. gen h_now_stat = .
+(276 missing values generated)
+
+. replace h_now_stat = .6
+(276 real changes made)
+
+. gen h_future_stat = .
+(276 missing values generated)
+
+. replace h_future_stat = 1.1
+(276 real changes made)
+
+. 
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        115    4.116706    1.364998          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msi
+> ze(medium) msymbol(o)) ///
+> (scatter mean_carbon_price temp_rise_cropped , mcolor("119 94 239") m
+> lcolor("94 64 201")  mlwidth(medium) msymbol(triangle))              
+>              ///
+> (scatter median_carbon_price temp_rise_cropped , mcolor("220 38 127")
+>  mlcolor("208 17 111")  mlwidth(medium) msymbol(square))             
+>               ///
+> , title("{bf:b }", pos(11) span size($head pt))                      
+>                        ///
+> ytitle("Global carbon price to stay below" "stated temperat. target (
+> USD/tCO2)", size($xytitle pt))                               ///
+> ylabel(, labsize($xylab pt))                                         
+>                        ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  
+> margin(0 0 0 4))       ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1
+> °C" "(n=`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')"
+>  "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , labsize(2 pt))                
+>                          ///
+> xscale(range(0.85 6.2 )) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) ro
+> ws(1) pos(6) ring(1) region(fcolor(%40))) ///
+> fysize(45) fxsize(40) scale(*1.25) graphregion(margin(0 0 0 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) 
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \price_temprise.gph saved)
+
+. 
+. 
+. * National carbon prices home (now/future)
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(purple%30) msize(me
+> dium) msymbol(o))  ///
+> (scatter mean_price_home_now h_now_stat , mcolor("119 94 239") mlcolo
+> r("94 64 201")  mlwidth(medium) msymbol(triangle))                   
+>  ///
+> (scatter median_price_home_now h_now_stat , mcolor("220 38 127") mlco
+> lor("208 17 111")  mlwidth(medium) msymbol(square))                  
+>       ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(orange%30) ms
+> ize(medium) msymbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , mcolor("119 94 239") 
+> mlcolor("94 64 201")  mlwidth(medium) msymbol(triangle))             
+>      ///
+> (scatter median_price_home_future h_future_stat , mcolor("220 38 127"
+> ) mlcolor("208 17 111")  mlwidth(medium) msymbol(square))            
+>       ///
+> , title("{bf: }", pos(11) span size($head pt))                       
+>             ///
+> ytitle("National carbon price to stay below" "2°C temp. target (USD/t
+> CO2)", size($xytitle pt))            ///
+> ylabel(, labsize($xylab pt)) yscale(alt) ///
+> xtitle("Time period", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future", labsize(8 pt)) xscale(range(0.47 1.3)) 
+> ///
+> legend(off) ///
+> fysize(45) fxsize(20) scale(*1.25) graphregion(margin(3 0 8 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\global_price", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \global_price.gph saved)
+
+. 
+. 
+. 
+. // Fig. 1c. Marginsplot global carbon price and home carbon price dee
+> med necessary 
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics edu1 edu3 edu4 edu5 // Education ref. cat.: edu
+> 2 (Social Sciences); gender and age erased to not jepardize anonimity
+>  of participants
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics lower_middle_income upper_middle_income high_
+> income // Income level: ref.cat: low
+
+. 
+. 
+. * Probit, DV: Global carbon price 
+. quietly: probit price_below temp_above tech_ms_pca $info_source $orga
+>  cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p1: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0572576   .0206221     2.78   0.005      .016839    .
+> 0976762
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_now temp_above tech_ms_pca $info_sou
+> rce $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p2: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_now), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0577999   .0173871     3.32   0.001     .0237219     
+> .091878
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_future temp_above tech_ms_pca $info_
+> source $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p3: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_future), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0429519   .0206146     2.08   0.037      .002548    .
+> 0833558
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Marginsplot
+. coefplot(p1, offset(-0.3)) (p2, offset(0)) (p3, offset(.3)), legend(o
+> ff) title("{bf:c} ", pos(11) span size($head pt))  byopts(compact row
+> s(1)) yline(0, lpattern(dash) lcolor(gs3)) ylabel(-.02(.02).1, labsiz
+> e($xylab pt)) xlab(.7 "Global" 1 "National now" 1.3 "National future"
+> , labsize($xylab pt)) ytitle("Regression estimated impact of" "techno
+> logical optimism on price proposed", size($xytitle pt)) grid(none) le
+> vels(95 90) ciopts(lwidth(0.8 2)  lcolor(*1 *.3) recast(rcap)) mlabel
+> (cond(@pval<.01, "***", cond(@pval<.05, "**", cond(@pval<.1, "*", "")
+> ))) msize(3pt) msymbol(D) mlabsize(10pt) mlabposition(2) subtitle(, s
+> ize(9pt) lstyle(none) margin(small) nobox justification(center) align
+> ment(top) bmargin(top)) vertical graphregion(margin(18 0 11 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) scale(*1.25) fysize(
+> 45) nodraw
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. graph save "$working_ANALYSIS\results\intermediate\margins_temp_price
+> ", replace 
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \margins_temp_price.gph saved)
+
+. 
+. 
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. 
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * National carbon prices home (now/future)
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(purple%30) msize(me
+> dium) msymbol(o))  ///
+> (scatter mean_price_home_now h_now_stat , mcolor("119 94 239") mlcolo
+> r("94 64 201")  mlwidth(medium) msymbol(triangle))                   
+>  ///
+> (scatter median_price_home_now h_now_stat , mcolor("220 38 127") mlco
+> lor("208 17 111")  mlwidth(medium) msymbol(square))                  
+>       ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(orange%30) ms
+> ize(medium) msymbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , mcolor("119 94 239") 
+> mlcolor("94 64 201")  mlwidth(medium) msymbol(triangle))             
+>      ///
+> (scatter median_price_home_future h_future_stat , mcolor("220 38 127"
+> ) mlcolor("208 17 111")  mlwidth(medium) msymbol(square))            
+>       ///
+> , title("{bf: }", pos(11) span size($head pt))                       
+>             ///
+> ytitle("National carbon price to stay below" "2°C temp. target (USD/t
+> CO2)", size($xytitle pt))            ///
+> ylabel(, labsize($xylab pt)) yscale(alt) ///
+> xtitle("Time period", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future", labsize(8 pt)) xscale(range(0.47 1.3)) 
+> ///
+> legend(off) ///
+> fysize(45) fxsize(20) scale(*1.25) graphregion(margin(5 0 5 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\global_price", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \global_price.gph saved)
+
+. 
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * National carbon prices home (now/future)
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(purple%30) msize(me
+> dium) msymbol(o))  ///
+> (scatter mean_price_home_now h_now_stat , mcolor("119 94 239") mlcolo
+> r("94 64 201")  mlwidth(medium) msymbol(triangle))                   
+>  ///
+> (scatter median_price_home_now h_now_stat , mcolor("220 38 127") mlco
+> lor("208 17 111")  mlwidth(medium) msymbol(square))                  
+>       ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(orange%30) ms
+> ize(medium) msymbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , mcolor("119 94 239") 
+> mlcolor("94 64 201")  mlwidth(medium) msymbol(triangle))             
+>      ///
+> (scatter median_price_home_future h_future_stat , mcolor("220 38 127"
+> ) mlcolor("208 17 111")  mlwidth(medium) msymbol(square))            
+>       ///
+> , title("{bf: }", pos(11) span size($head pt))                       
+>             ///
+> ytitle("National carbon price to stay below" "2°C temp. target (USD/t
+> CO2)", size($xytitle pt))            ///
+> ylabel(, labsize($xylab pt)) yscale(alt) ///
+> xtitle("Time period", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future", labsize(8 pt)) xscale(range(0.47 1.3)) 
+> ///
+> legend(off) ///
+> fysize(45) fxsize(20) scale(*1.25) graphregion(margin(5 0 8 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\global_price", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \global_price.gph saved)
+
+. 
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. 
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Fig 1b
+. ** Global carbon price and temperature rise 
+. * Global Generate variable defining position of observations on x-axi
+> s
+. egen carbon_price_rank = rank(carbon_price_cap), by(temp_rise_cropped
+> ) unique
+variable carbon_price_rank already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics edu1 edu3 edu4 edu5 // Education ref. cat.: edu
+> 2 (Social Sciences); gender and age erased to not jepardize anonimity
+>  of participants
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics lower_middle_income upper_middle_income high_
+> income // Income level: ref.cat: low
+
+. 
+. 
+. * Probit, DV: Global carbon price 
+. quietly: probit price_below temp_above tech_ms_pca $info_source $orga
+>  cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p1: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0572576   .0206221     2.78   0.005      .016839    .
+> 0976762
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_now temp_above tech_ms_pca $info_sou
+> rce $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p2: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_now), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0577999   .0173871     3.32   0.001     .0237219     
+> .091878
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_future temp_above tech_ms_pca $info_
+> source $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p3: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_future), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0429519   .0206146     2.08   0.037      .002548    .
+> 0833558
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Marginsplot
+. coefplot(p1, offset(-0.3)) (p2, offset(0)) (p3, offset(.3)), legend(o
+> ff) title("{bf:c} ", pos(11) span size($head pt))  byopts(compact row
+> s(1)) yline(0, lpattern(dash) lcolor(gs3)) ylabel(-.02(.02).1, labsiz
+> e($xylab pt)) xlab(.7 "Global" 1 "National now" 1.3 "National future"
+> , labsize($xylab pt)) ytitle("Regression estimated impact of" "techno
+> logical optimism on price proposed", size($xytitle pt)) grid(none) le
+> vels(95 90) ciopts(lwidth(0.8 2)  lcolor(*1 *.3) recast(rcap)) mlabel
+> (cond(@pval<.01, "***", cond(@pval<.05, "**", cond(@pval<.1, "*", "")
+> ))) msize(3pt) msymbol(D) mlabsize(10pt) mlabposition(2) subtitle(, s
+> ize(9pt) lstyle(none) margin(small) nobox justification(center) align
+> ment(top) bmargin(top)) vertical graphregion(margin(18 0 12 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) scale(*1.25) fysize(
+> 45) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\margins_temp_price
+> ", replace 
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. 
+. * Save number of observations in locals
+. forvalues i = 1/6 {
+  2. sum ln_carbon_price if tr`i' == 1
+  3. local n_`i' = r(N)
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         22    3.323065    2.261287          0   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         36    3.722019    2.127395   .6931472   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         42    4.207788    1.800718   1.098612   7.601402
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |        115    4.116706    1.364998          0   7.313887
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         40    3.659859    1.407166          0   6.552508
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+ln_carbon_~e |         21    3.544467    1.325008   .6931472   6.908755
+
+. twoway ///
+> (scatter carbon_price_cap temp_rise_cropped_jitter2 , mcolor(%30) msi
+> ze(medium) msymbol(o)) ///
+> (scatter mean_carbon_price temp_rise_cropped , mcolor("119 94 239") m
+> lcolor("94 64 201")  mlwidth(medium) msymbol(triangle))              
+>              ///
+> (scatter median_carbon_price temp_rise_cropped , mcolor("220 38 127")
+>  mlcolor("208 17 111")  mlwidth(medium) msymbol(square))             
+>               ///
+> , title("{bf:b }", pos(11) span size($head pt))                      
+>                        ///
+> ytitle("Global carbon price to stay below" "stated temperat. target (
+> USD/tCO2)", size($xytitle pt))                               ///
+> ylabel(, labsize($xylab pt))                                         
+>                        ///
+> xtitle("Temperature rise deemed acceptable (°C)", size($xytitle pt)  
+> margin(0 0 0 4))       ///
+> xlabel(1 `" "0°C" "(n=`n_1')" "' 2 `" "0.5°C" "(n=`n_2')" "'  3 `" "1
+> °C" "(n=`n_3')" "' 4 `" "1.5°C" "(n=`n_4')" "' 5 `" "2°C" "(n=`n_5')"
+>  "' 6 `" "{&ge}2.5°C" "(n=`n_6')" "' , labsize(2.1 pt))              
+>                            ///
+> xscale(range(0.85 6.2 )) ///
+> legend(order(1 "Observation" 2 "Mean" 3 "Median") size($legend pt) ro
+> ws(1) pos(6) ring(1) region(fcolor(%40))) ///
+> fysize(45) fxsize(40) scale(*1.25) graphregion(margin(0 0 0 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) 
+
+. graph save "$working_ANALYSIS\results\intermediate\price_temprise", r
+> eplace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \price_temprise.gph saved)
+
+. 
+. 
+. * National carbon prices home (now/future)
+. twoway ///
+> (scatter price_home_now_cap h_now_jitter , mcolor(purple%30) msize(me
+> dium) msymbol(o))  ///
+> (scatter mean_price_home_now h_now_stat , mcolor("119 94 239") mlcolo
+> r("94 64 201")  mlwidth(medium) msymbol(triangle))                   
+>  ///
+> (scatter median_price_home_now h_now_stat , mcolor("220 38 127") mlco
+> lor("208 17 111")  mlwidth(medium) msymbol(square))                  
+>       ///
+> (scatter price_home_future_cap h_future_jitter , mcolor(orange%30) ms
+> ize(medium) msymbol(o)) ///
+> (scatter mean_price_home_future h_future_stat , mcolor("119 94 239") 
+> mlcolor("94 64 201")  mlwidth(medium) msymbol(triangle))             
+>      ///
+> (scatter median_price_home_future h_future_stat , mcolor("220 38 127"
+> ) mlcolor("208 17 111")  mlwidth(medium) msymbol(square))            
+>       ///
+> , title("{bf: }", pos(11) span size($head pt))                       
+>             ///
+> ytitle("National carbon price to stay below" "2°C temp. target (USD/t
+> CO2)", size($xytitle pt))            ///
+> ylabel(, labsize($xylab pt)) yscale(alt) ///
+> xtitle("Time period", size($xytitle pt)  margin(0 0 0 4)) ///
+> xlabel(.6 "Now" 1.1 "Future", labsize(8 pt)) xscale(range(0.47 1.3)) 
+> ///
+> legend(off) ///
+> fysize(45) fxsize(20) scale(*1.25) graphregion(margin(5 0 8 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\global_price", rep
+> lace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \global_price.gph saved)
+
+. 
+. 
+. 
+. 
+. // Fig. 1c. Marginsplot global carbon price and home carbon price dee
+> med necessary 
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics edu1 edu3 edu4 edu5 // Education ref. cat.: edu
+> 2 (Social Sciences); gender and age erased to not jepardize anonimity
+>  of participants
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics lower_middle_income upper_middle_income high_
+> income // Income level: ref.cat: low
+
+. 
+. 
+. * Probit, DV: Global carbon price 
+. quietly: probit price_below temp_above tech_ms_pca $info_source $orga
+>  cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p1: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0572576   .0206221     2.78   0.005      .016839    .
+> 0976762
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_now temp_above tech_ms_pca $info_sou
+> rce $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p2: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_now), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0577999   .0173871     3.32   0.001     .0237219     
+> .091878
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Probit, DV: Carbon price home now
+. quietly: probit price_below_home_future temp_above tech_ms_pca $info_
+> source $orga cops_attended $socioeconomics i.income , vce(robust)
+
+. eststo p3: margins, dydx(tech_ms_pca) post
+
+Average marginal effects                        Number of obs     =    
+>     276
+Model VCE    : Robust
+
+Expression   : Pr(price_below_home_future), predict()
+dy/dx w.r.t. : tech_ms_pca
+
+-----------------------------------------------------------------------
+> -------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. In
+> terval]
+-------------+---------------------------------------------------------
+> -------
+ tech_ms_pca |   .0429519   .0206146     2.08   0.037      .002548    .
+> 0833558
+-----------------------------------------------------------------------
+> -------
+
+. 
+. * Marginsplot
+. coefplot(p1, offset(-0.3)) (p2, offset(0)) (p3, offset(.3)), legend(o
+> ff) title("{bf:c} ", pos(11) span size($head pt))  byopts(compact row
+> s(1)) yline(0, lpattern(dash) lcolor(gs3)) ylabel(-.02(.02).1, labsiz
+> e($xylab pt)) xlab(.7 "Global" 1 "National now" 1.3 "National future"
+> , labsize($xylab pt)) ytitle("Regression estimated impact of" "techno
+> logical optimism on price proposed", size($xytitle pt)) grid(none) le
+> vels(95 90) ciopts(lwidth(0.8 2)  lcolor(*1 *.3) recast(rcap)) mlabel
+> (cond(@pval<.01, "***", cond(@pval<.05, "**", cond(@pval<.1, "*", "")
+> ))) msize(3pt) msymbol(D) mlabsize(10pt) mlabposition(2) subtitle(, s
+> ize(9pt) lstyle(none) margin(small) nobox justification(center) align
+> ment(top) bmargin(top)) vertical graphregion(margin(18 0 12 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) scale(*1.25) fysize(
+> 45) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\margins_temp_price
+> ", replace 
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \margins_temp_price.gph saved)
+
+. 
+. 
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. 
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Pap
+> er SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figure
+> s/Figure_2.gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.tif written in TIFF format)
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. * Marginsplot
+. coefplot(p1, offset(-0.3)) (p2, offset(0)) (p3, offset(.3)), legend(o
+> ff) title("{bf:c} ", pos(11) span size($head pt))  byopts(compact row
+> s(1)) yline(0, lpattern(dash) lcolor(gs3)) ylabel(-.02(.02).1, labsiz
+> e($xylab pt)) xlab(.7 "Global" 1 "National now" 1.3 "National future"
+> , labsize($xylab pt)) ytitle("Regression estimated impact of" "techno
+> logical optimism on price proposed", size($xytitle pt)) grid(none) le
+> vels(95 90) ciopts(lwidth(0.8 2)  lcolor(*1 *.3) recast(rcap)) mlabel
+> (cond(@pval<.01, "***", cond(@pval<.05, "**", cond(@pval<.1, "*", "")
+> ))) msize(3pt) msymbol(D) mlabsize(10pt) mlabposition(2) subtitle(, s
+> ize(9pt) lstyle(none) margin(small) nobox justification(center) align
+> ment(top) bmargin(top)) vertical graphregion(margin(18 0 13 0) fcolor
+> (none) lcolor(none)) plotregion(margin(0 0 0 0)) scale(*1.25) fysize(
+> 45) nodraw
+
+. graph save "$working_ANALYSIS\results\intermediate\margins_temp_price
+> ", replace 
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis\results\intermediate
+> \margins_temp_price.gph saved)
+
+. 
+. 
+. 
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. 
+. gr save "$working_ANALYSIS/results/figures/Figure_2", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_2.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_2.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. // Combine graph b & c
+. graph combine "$working_ANALYSIS\results\intermediate\price_temprise"
+>  "$working_ANALYSIS/results/intermediate/global_price.gph" "$working_
+> ANALYSIS\results\intermediate\margins_temp_price", rows(1) fysize(45)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. gr save "$working_ANALYSIS/results/intermediate/figure1_bc.gph", repl
+> ace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /figure1_bc.gph saved)
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. gr_edit plotregion1.graph2.plotregion1.graph2.xaxis1.title.DragBy .61
+> 5 0
+
+. 
+. gr save "$working_ANALYSIS/results/intermediate/Figure_1", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Pap
+> er SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/interm
+> ediate/Figure_1.gph not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /Figure_1.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_1.tif", replace
+(note: file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Pap
+> er SustUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figure
+> s/Figure_1.tif not found)
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_1.tif written in TIFF format)
+
+. 
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr_edit plotregion1.graph2.plotregion1.graph2.xaxis1.title.DragBy .2 
+> 0
+
+. 
+end of do-file
+
+.  do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr_edit plotregion1.graph2.plotregion1.graph2.xaxis1.title.DragBy .2 
+> 0
+
+. 
+end of do-file
+
+.  do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. gr_edit plotregion1.graph2.plotregion1.graph2.xaxis1.title.DragBy .2 
+> 0
+
+. 
+end of do-file
+
+.  do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+
+. 
+. // Combine graph a with b&c
+. graph combine "$working_ANALYSIS\results\intermediate\tech_opt_answer
+> s" "$working_ANALYSIS/results/intermediate/figure1_bc.gph" , rows(2) 
+> ysize(5)
+(note:  named style thin not found in class linestyle, default
+    attributes used)
+
+. 
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 2 1 `"
+> "National" "now""', tickset(major) editstyle(tickstyle(textstyle(colo
+> r("87 64 92"))) tickstyle(textstyle(size(2.2))))
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.major.num_rule_t
+> icks = 0
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.xaxis1.edit_tick 3 1.3 
+> `""National" "future""', custom tickset(major) editstyle(tickstyle(te
+> xtstyle(color("87 64 92"))) tickstyle(textstyle(size(2.2))) )
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot8.style
+> .editstyle area(linestyle(color("255 220 184"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot7.style
+> .editstyle area(linestyle(color("255 128 0"))) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph3.plotregion1.plot9.style
+> .editstyle marker(fillcolor("255 128 0")) editcopy
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.yaxis1.title.DragBy 0 -
+> .9836311481557526
+
+. gr_edit plotregion1.graph2.plotregion1.graph1.legend.plotregion1.Drag
+> By 0 8.975634226921263
+
+. gr_edit plotregion1.graph2.plotregion1.graph2.xaxis1.title.DragBy 1.2
+>  0
+
+. 
+. gr save "$working_ANALYSIS/results/intermediate/Figure_1", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/intermediate
+> /Figure_1.gph saved)
+
+. gr export "$working_ANALYSIS/results/figures/Figure_1.tif", replace
+(file C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper Sus
+> tUse\Donia_Delegates\8_Submission\NSUST\analysis/results/figures/Figu
+> re_1.tif written in TIFF format)
+
+. 
+end of do-file
+
+. help width
+
+. help export
+
+. help graph
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD676c_000000.tmp"
+

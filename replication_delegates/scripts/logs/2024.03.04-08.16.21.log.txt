@@ -1,0 +1,980 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis/scripts/logs/2024.03.04-08.16.21.log.txt
+  log type:  text
+ opened on:   4 Mar 2024, 08:16:21
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time:  4 Mar 2024 08:16:21
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 11 Oct 2022
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            Windows 64-bit
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  PC (64-bit x86-64)
+
+. 
+. *   Analyses were run on Windows using Stata version 16
+. version 16              // Set Version number for backward compatibility
+
+. 
+. /* All required Stata packages are available in the /libraries/stata folder
+> tokenize `"$S_ADO"', parse(";")
+> while `"`1'"' != "" {
+>   if `"`1'"'!="BASE" cap adopath - `"`1'"'
+>   macro shift
+> }
+> adopath ++ "$working_ANALYSIS/scripts/libraries/stata"
+> mata: mata mlib index
+> */
+. 
+. * Create directories for output files
+. cap mkdir "$working_ANALYSIS/results"
+
+. cap mkdir "$working_ANALYSIS/results/intermediate"
+
+. cap mkdir "$working_ANALYSIS/results/tables"
+
+. cap mkdir "$working_ANALYSIS/results/figures"
+
+. * -------------------------------------------------
+. 
+. * Set general graph style
+. set scheme swift_red // select one scheme as reference scheme to work with
+
+. 
+. 
+. grstyle init 
+
+. {
+. *Background color
+. grstyle set color white: background plotregion graphregion legend box textbox //
+. 
+. *Main colors (note: swift_red only defines 8 colors. Multiplying the color, that is "xx yy zz*0.5" reduces/increases intensity and "xx yy zz%50" reduces transparency)
+. grstyle set color       "100 143 255" "120 94 240" "220 38 127" "254 97 0" "255 176 0" /// 5 main colors
+>                                         "100 143 255*0.4" "120 94 240*0.4" "220 38 127*0.4" "254 97 0*0.4" "255 176 0*0.4" ///
+>                                         "100 143 255*1.7" "120 94 240*1.7" "220 38 127*1.7" "254 97 0*1.7" "255 176 0*1.7" ///
+>                                         : p# p#line p#lineplot p#bar p#area p#arealine p#pie histogram 
+. 
+. *margins
+. grstyle set compact
+. 
+. *Font size
+. grstyle set size 10pt: heading //titles
+. grstyle set size 8pt: subheading axis_title //axis titles
+. grstyle set size 8pt: p#label p#boxlabel body small_body text_option axis_label tick_label minortick_label key_label //all other text
+. 
+. }
+
+. * -------------------------------------------------
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD6394_000000.tmp"
+
+. 
+. *********************************************************
+. **********               STRUCTURE             **********
+. *********************************************************
+. /*
+> Appendix:
+>   S2 Sample details
+>         o 2.1 Summary statistics (Table S1)
+>    
+>   S3 Measurement details
+>         o 3.1 PCA Generation Mindset (Fig S2) & Distribution answers
+>         o 3.1 Validation Mindset measures: Books recommendations (Fig S3)
+>         o 3.2 PCA Generation Negotiation Style (Fig S4)
+> 
+>   S4 Additional analysis and robustness checks
+>     o 4.1 Determinants of the mindset (Table S2)
+>         o 4.2 Temperature rise deemed acceptable
+>                 o Main regression outcomes (Table S3)
+>                 o Robustness-test using (quasi-)continious variables (Table S4)
+>     o 4.3 Carbon price suggested
+>                 o Main regression outcomes (Table S5)
+>                 o Robustness-test using (quasi-)continious variables (Table S6)
+>         o 4.4 Shift of burden
+>                 o Main regression outcomes (Table S7)
+>                 o Robustness-test using (quasi-)continious variables (Table S8)
+>         o 4.5 Negotiations
+>                 o Main regression outcomes (Table S9)
+>                 o Robustness-test using (quasi-)continious variables (Table S10)
+> */
+. 
+. 
+. 
+. global working_ANALYSIS "C:\Users\Max Burger\HESSENBOX\2-Projekte (Björn Vollan)\Paper SustUse\Donia_Delegates\8_Submission\NSUST\analysis"
+
+. 
+. use "$working_ANALYSIS\data\delegates_analysis_complete.dta", clear
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD6394_000000.tmp"
+
+. 
+. * Generate
+. gen ln_science = ln(science)
+
+. 
+. alpha ln_carbon_price ln_carbon_price ln_price_home_now ln_price_oecd_now ln_price_ldc_now ln_price_home_future ln_price_oecd_future ln_price_ldc_future, gen(ln_carbon_price_mean
+> )
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     2.073274
+Number of items in the scale:            7
+Scale reliability coefficient:      0.9487
+
+. 
+. alpha carbon_price carbon_price price_home_now price_oecd_now price_ldc_now price_home_future price_oecd_future price_ldc_future, gen(carbon_price_mean)
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     93975.97
+Number of items in the scale:            7
+Scale reliability coefficient:      0.9286
+
+. 
+end of do-file
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD6394_000000.tmp"
+
+.           
+. ************************************************************
+. *        S4 Additional Analysis and Robustness Tests       *
+. ************************************************************
+. * Set globals
+. global info_source info_cc_1 info_cc_2 info_cc_3 info_cc_4 info_cc_5
+
+. global socioeconomics female age edu1 edu3 edu4 edu5 // Education ref. cat.: edu2 (Social Sciences)
+
+. global orga orga2 orga3 orga4 // Governmental organization ref. cat.
+
+. global countryspecifics i.income co2_pc ln_science freedom_house_index
+
+. 
+end of do-file
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics $countryspecifics treat_tech, vce(robust)
+variable t_other not found
+r(111);
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD6394_000000.tmp"
+
+. 
+. 
+. // S4.3 Negotiation Style
+. gen t_other_delegation = (t_own_delegation - 1) * (-1)
+
+. lab define other 0 "Own" 1 "Other"
+
+. lab val t_other_delegation other 
+
+. 
+end of do-file
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics $countryspecifics treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(25, 250)        =       3.90
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2414
+                                                Root MSE          =     1.6546
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+              t_other_delegation |
+                          Other  |   1.558803   .2335942     6.67   0.000      1.09874    2.018866
+                     tech_ms_pca |    .159664   .1057839     1.51   0.132    -.0486773    .3680053
+                                 |
+t_other_delegation#c.tech_ms_pca |
+                          Other  |   -.043866   .1404488    -0.31   0.755    -.3204796    .2327476
+                                 |
+                       info_cc_1 |  -.0318577   .2638431    -0.12   0.904    -.5514961    .4877808
+                       info_cc_2 |    .090706    .213505     0.42   0.671    -.3297918    .5112037
+                       info_cc_3 |  -.3362522   .3399257    -0.99   0.324    -1.005735     .333231
+                       info_cc_4 |  -.0365076   .2916891    -0.13   0.900    -.6109888    .5379736
+                       info_cc_5 |  -.4914294   .3360432    -1.46   0.145    -1.153266    .1704072
+                           orga2 |   .4264086   .3711136     1.15   0.252     -.304499    1.157316
+                           orga3 |   .0643945    .345063     0.19   0.852    -.6152065    .7439954
+                           orga4 |   .0863435   .3522265     0.25   0.807     -.607366     .780053
+                   cops_attended |   .0044043   .0167832     0.26   0.793    -.0286501    .0374588
+                          female |  -.0222984   .2141489    -0.10   0.917    -.4440642    .3994675
+                             age |  -.0079476   .0102466    -0.78   0.439    -.0281282    .0122331
+                            edu1 |  -.0381605   .2893222    -0.13   0.895    -.6079801    .5316591
+                            edu3 |    .450812   .3643057     1.24   0.217    -.2666875    1.168311
+                            edu4 |   .1897817   .4220809     0.45   0.653     -.641506    1.021069
+                            edu5 |  -.1393176   .4304234    -0.32   0.746    -.9870358    .7084006
+                                 |
+                    income_level |
+                     Low-middle  |   -.158433   .3630469    -0.44   0.663    -.8734532    .5565872
+                   Upper-middle  |  -.1526869   .4618156    -0.33   0.741    -1.062232    .7568581
+                           High  |   .1483849   .6959453     0.21   0.831    -1.222278    1.519048
+                                 |
+                          co2_pc |  -.0669982   .0485131    -1.38   0.169    -.1625447    .0285484
+                      ln_science |  -.0285178   .0616709    -0.46   0.644    -.1499786     .092943
+             freedom_house_index |   .0008092   .0057321     0.14   0.888    -.0104802    .0120986
+                      treat_tech |  -.1972355   .2407711    -0.82   0.413    -.6714337    .2769627
+                           _cons |    .710824   .8112952     0.88   0.382    -.8870207    2.308669
+--------------------------------------------------------------------------------------------------
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(22, 253)        =       4.30
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2345
+                                                Root MSE          =     1.6522
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+              t_other_delegation |
+                          Other  |   1.559712   .2258733     6.91   0.000      1.11488    2.004543
+                     tech_ms_pca |   .1608704   .1050423     1.53   0.127    -.0459983    .3677391
+                                 |
+t_other_delegation#c.tech_ms_pca |
+                          Other  |  -.0305883   .1367513    -0.22   0.823    -.2999043    .2387276
+                                 |
+                       info_cc_1 |  -.0460076   .2655752    -0.17   0.863    -.5690273    .4770121
+                       info_cc_2 |   .0954875     .21507     0.44   0.657     -.328068     .519043
+                       info_cc_3 |  -.3207975   .3367586    -0.95   0.342    -.9840048    .3424097
+                       info_cc_4 |  -.0308635   .2945619    -0.10   0.917    -.6109692    .5492423
+                       info_cc_5 |  -.5088708   .3304665    -1.54   0.125    -1.159686    .1419448
+                           orga2 |   .4478897   .3611562     1.24   0.216    -.2633658    1.159145
+                           orga3 |   .0396407   .3405621     0.12   0.907    -.6310571    .7103385
+                           orga4 |   .0146297   .3444842     0.04   0.966    -.6637921    .6930516
+                   cops_attended |   .0053588   .0164038     0.33   0.744    -.0269466    .0376642
+                          female |  -.0293056   .2137405    -0.14   0.891    -.4502429    .3916317
+                             age |  -.0094781   .0098773    -0.96   0.338    -.0289302    .0099741
+                            edu1 |  -.0377916   .2881852    -0.13   0.896    -.6053392     .529756
+                            edu3 |   .4151271   .3622798     1.15   0.253    -.2983412    1.128595
+                            edu4 |   .1788282   .4132964     0.43   0.666    -.6351114    .9927678
+                            edu5 |  -.0786811   .4286153    -0.18   0.854    -.9227896    .7654273
+                                 |
+                    income_level |
+                     Low-middle  |   -.235195   .3360736    -0.70   0.485    -.8970532    .4266631
+                   Upper-middle  |  -.4206215   .3734111    -1.13   0.261    -1.156012    .3147687
+                           High  |  -.4014577    .351715    -1.14   0.255     -1.09412    .2912046
+                                 |
+                      treat_tech |  -.1397882   .2032759    -0.69   0.492    -.5401166    .2605402
+                           _cons |   .6369559   .6901373     0.92   0.357    -.7221901    1.996102
+--------------------------------------------------------------------------------------------------
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(22, 253)        =       4.30
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2345
+                                                Root MSE          =     1.6522
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+              t_other_delegation |
+                          Other  |   1.559712   .2258733     6.91   0.000      1.11488    2.004543
+                     tech_ms_pca |   .1608704   .1050423     1.53   0.127    -.0459983    .3677391
+                                 |
+t_other_delegation#c.tech_ms_pca |
+                          Other  |  -.0305883   .1367513    -0.22   0.823    -.2999043    .2387276
+                                 |
+                       info_cc_1 |  -.0460076   .2655752    -0.17   0.863    -.5690273    .4770121
+                       info_cc_2 |   .0954875     .21507     0.44   0.657     -.328068     .519043
+                       info_cc_3 |  -.3207975   .3367586    -0.95   0.342    -.9840048    .3424097
+                       info_cc_4 |  -.0308635   .2945619    -0.10   0.917    -.6109692    .5492423
+                       info_cc_5 |  -.5088708   .3304665    -1.54   0.125    -1.159686    .1419448
+                           orga2 |   .4478897   .3611562     1.24   0.216    -.2633658    1.159145
+                           orga3 |   .0396407   .3405621     0.12   0.907    -.6310571    .7103385
+                           orga4 |   .0146297   .3444842     0.04   0.966    -.6637921    .6930516
+                   cops_attended |   .0053588   .0164038     0.33   0.744    -.0269466    .0376642
+                          female |  -.0293056   .2137405    -0.14   0.891    -.4502429    .3916317
+                             age |  -.0094781   .0098773    -0.96   0.338    -.0289302    .0099741
+                            edu1 |  -.0377916   .2881852    -0.13   0.896    -.6053392     .529756
+                            edu3 |   .4151271   .3622798     1.15   0.253    -.2983412    1.128595
+                            edu4 |   .1788282   .4132964     0.43   0.666    -.6351114    .9927678
+                            edu5 |  -.0786811   .4286153    -0.18   0.854    -.9227896    .7654273
+                                 |
+                    income_level |
+                     Low-middle  |   -.235195   .3360736    -0.70   0.485    -.8970532    .4266631
+                   Upper-middle  |  -.4206215   .3734111    -1.13   0.261    -1.156012    .3147687
+                           High  |  -.4014577    .351715    -1.14   0.255     -1.09412    .2912046
+                                 |
+                      treat_tech |  -.1397882   .2032759    -0.69   0.492    -.5401166    .2605402
+                           _cons |   .6369559   .6901373     0.92   0.357    -.7221901    1.996102
+--------------------------------------------------------------------------------------------------
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(22, 253)        =       4.30
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2345
+                                                Root MSE          =     1.6522
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+              t_other_delegation |
+                          Other  |   1.559712   .2258733     6.91   0.000      1.11488    2.004543
+                     tech_ms_pca |   .1608704   .1050423     1.53   0.127    -.0459983    .3677391
+                                 |
+t_other_delegation#c.tech_ms_pca |
+                          Other  |  -.0305883   .1367513    -0.22   0.823    -.2999043    .2387276
+                                 |
+                       info_cc_1 |  -.0460076   .2655752    -0.17   0.863    -.5690273    .4770121
+                       info_cc_2 |   .0954875     .21507     0.44   0.657     -.328068     .519043
+                       info_cc_3 |  -.3207975   .3367586    -0.95   0.342    -.9840048    .3424097
+                       info_cc_4 |  -.0308635   .2945619    -0.10   0.917    -.6109692    .5492423
+                       info_cc_5 |  -.5088708   .3304665    -1.54   0.125    -1.159686    .1419448
+                           orga2 |   .4478897   .3611562     1.24   0.216    -.2633658    1.159145
+                           orga3 |   .0396407   .3405621     0.12   0.907    -.6310571    .7103385
+                           orga4 |   .0146297   .3444842     0.04   0.966    -.6637921    .6930516
+                   cops_attended |   .0053588   .0164038     0.33   0.744    -.0269466    .0376642
+                          female |  -.0293056   .2137405    -0.14   0.891    -.4502429    .3916317
+                             age |  -.0094781   .0098773    -0.96   0.338    -.0289302    .0099741
+                            edu1 |  -.0377916   .2881852    -0.13   0.896    -.6053392     .529756
+                            edu3 |   .4151271   .3622798     1.15   0.253    -.2983412    1.128595
+                            edu4 |   .1788282   .4132964     0.43   0.666    -.6351114    .9927678
+                            edu5 |  -.0786811   .4286153    -0.18   0.854    -.9227896    .7654273
+                                 |
+                    income_level |
+                     Low-middle  |   -.235195   .3360736    -0.70   0.485    -.8970532    .4266631
+                   Upper-middle  |  -.4206215   .3734111    -1.13   0.261    -1.156012    .3147687
+                           High  |  -.4014577    .351715    -1.14   0.255     -1.09412    .2912046
+                                 |
+                      treat_tech |  -.1397882   .2032759    -0.69   0.492    -.5401166    .2605402
+                           _cons |   .6369559   .6901373     0.92   0.357    -.7221901    1.996102
+--------------------------------------------------------------------------------------------------
+
+. sum negotiate_pca
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+negotiate_~a |        276   -.0090415    1.811247  -3.276045   3.466041
+
+. hist co2_pc
+(bin=16, start=.03258478, width=1.2637304)
+
+. tab co2_pca
+variable co2_pca not found
+r(111);
+
+. tab co2_pc
+
+        CO2 |
+  emissions |
+    (metric |
+   tons per |
+    capita) |
+[EN.ATM.CO2 |
+      E.PC] |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   .0325848 |          4        1.45        1.45
+   .0399347 |          1        0.36        1.81
+    .058384 |          3        1.09        2.90
+   .0846362 |          1        0.36        3.26
+   .0903256 |          3        1.09        4.35
+   .0942282 |          3        1.09        5.43
+   .0972695 |          6        2.17        7.61
+   .1051241 |          3        1.09        8.70
+   .1272776 |          2        0.72        9.42
+    .127793 |          3        1.09       10.51
+   .1544318 |          3        1.09       11.59
+    .195566 |          2        0.72       12.32
+   .2234789 |          3        1.09       13.41
+   .2339456 |          3        1.09       14.49
+   .2375296 |          1        0.36       14.86
+   .2535332 |          3        1.09       15.94
+    .283815 |          2        0.72       16.67
+   .2860618 |          4        1.45       18.12
+   .3431552 |          2        0.72       18.84
+   .3740792 |          1        0.36       19.20
+   .3747827 |          2        0.72       19.93
+    .389175 |          2        0.72       20.65
+   .4019027 |          5        1.81       22.46
+   .4063474 |         11        3.99       26.45
+   .4071122 |          3        1.09       27.54
+   .4679539 |          5        1.81       29.35
+   .5093662 |          3        1.09       30.43
+   .5106476 |          2        0.72       31.16
+   .5304835 |          6        2.17       33.33
+   .5375102 |          7        2.54       35.87
+   .5632516 |          1        0.36       36.23
+    .592743 |          1        0.36       36.59
+   .6028875 |          6        2.17       38.77
+   .6312048 |          3        1.09       39.86
+   .6498006 |          8        2.90       42.75
+   .8103602 |          1        0.36       43.12
+   .9589139 |          1        0.36       43.48
+   .9607824 |          1        0.36       43.84
+   .9966832 |          1        0.36       44.20
+   1.000407 |          2        0.72       44.93
+   1.025642 |          1        0.36       45.29
+   1.117096 |          3        1.09       46.38
+   1.137584 |          2        0.72       47.10
+   1.144591 |          2        0.72       47.83
+   1.189679 |          1        0.36       48.19
+   1.254592 |          2        0.72       48.91
+   1.340054 |          1        0.36       49.28
+   1.359996 |          1        0.36       49.64
+   1.379975 |          1        0.36       50.00
+   1.398566 |          1        0.36       50.36
+    1.54455 |          1        0.36       50.72
+   1.588045 |          1        0.36       51.09
+   1.741108 |          2        0.72       51.81
+   1.818526 |          3        1.09       52.90
+   1.919172 |          1        0.36       53.26
+   1.942523 |          4        1.45       54.71
+   1.957575 |          2        0.72       55.43
+   1.961123 |          3        1.09       56.52
+   2.071659 |          6        2.17       58.70
+   2.080182 |          2        0.72       59.42
+   2.231443 |          2        0.72       60.14
+   2.263463 |          3        1.09       61.23
+   2.404684 |          1        0.36       61.59
+   2.408623 |          3        1.09       62.68
+   2.620283 |          2        0.72       63.41
+   2.725731 |          3        1.09       64.49
+   2.754709 |          1        0.36       64.86
+   2.826385 |          2        0.72       65.58
+   3.040766 |          2        0.72       66.30
+   3.405618 |          1        0.36       66.67
+   3.564138 |          1        0.36       67.03
+   3.663848 |          1        0.36       67.39
+    3.67644 |          1        0.36       67.75
+   3.714256 |          4        1.45       69.20
+   3.718223 |          1        0.36       69.57
+   3.792194 |          1        0.36       69.93
+   3.860705 |          1        0.36       70.29
+   4.042073 |          4        1.45       71.74
+      4.184 |          1        0.36       72.10
+   4.279595 |          1        0.36       72.46
+   4.285077 |          1        0.36       72.83
+   4.395151 |          1        0.36       73.19
+   4.591653 |          4        1.45       74.64
+   4.691237 |          1        0.36       75.00
+   4.732373 |          6        2.17       77.17
+   4.767185 |          2        0.72       77.90
+   4.885864 |          2        0.72       78.62
+   5.934735 |          1        0.36       78.99
+   6.080518 |          2        0.72       79.71
+   6.312306 |          6        2.17       81.88
+   6.430645 |          2        0.72       82.61
+   6.570145 |          6        2.17       84.78
+   6.632646 |          4        1.45       86.23
+   6.687563 |          1        0.36       86.59
+   6.714517 |          2        0.72       87.32
+    6.72508 |          4        1.45       88.77
+   6.768228 |          1        0.36       89.13
+   7.255221 |          8        2.90       92.03
+   7.367563 |          3        1.09       93.12
+   7.398131 |          4        1.45       94.57
+   7.756138 |          1        0.36       94.93
+   8.031496 |          2        0.72       95.65
+   8.304017 |          1        0.36       96.01
+   10.99003 |          1        0.36       96.38
+   11.29774 |          2        0.72       97.10
+   12.45695 |          2        0.72       97.83
+   13.03283 |          2        0.72       98.55
+   13.59937 |          3        1.09       99.64
+   20.25227 |          1        0.36      100.00
+------------+-----------------------------------
+      Total |        276      100.00
+
+. gen ln_co2_pc = ln(co2_pca)
+co2_pca not found
+r(111);
+
+. gen ln_co2_pc = ln(co2_pc)
+
+. hist ln_co2_pc
+(bin=16, start=-3.4239099, width=.40201105)
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(22, 253)        =       4.30
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2345
+                                                Root MSE          =     1.6522
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+              t_other_delegation |
+                          Other  |   1.559712   .2258733     6.91   0.000      1.11488    2.004543
+                     tech_ms_pca |   .1608704   .1050423     1.53   0.127    -.0459983    .3677391
+                                 |
+t_other_delegation#c.tech_ms_pca |
+                          Other  |  -.0305883   .1367513    -0.22   0.823    -.2999043    .2387276
+                                 |
+                       info_cc_1 |  -.0460076   .2655752    -0.17   0.863    -.5690273    .4770121
+                       info_cc_2 |   .0954875     .21507     0.44   0.657     -.328068     .519043
+                       info_cc_3 |  -.3207975   .3367586    -0.95   0.342    -.9840048    .3424097
+                       info_cc_4 |  -.0308635   .2945619    -0.10   0.917    -.6109692    .5492423
+                       info_cc_5 |  -.5088708   .3304665    -1.54   0.125    -1.159686    .1419448
+                           orga2 |   .4478897   .3611562     1.24   0.216    -.2633658    1.159145
+                           orga3 |   .0396407   .3405621     0.12   0.907    -.6310571    .7103385
+                           orga4 |   .0146297   .3444842     0.04   0.966    -.6637921    .6930516
+                   cops_attended |   .0053588   .0164038     0.33   0.744    -.0269466    .0376642
+                          female |  -.0293056   .2137405    -0.14   0.891    -.4502429    .3916317
+                             age |  -.0094781   .0098773    -0.96   0.338    -.0289302    .0099741
+                            edu1 |  -.0377916   .2881852    -0.13   0.896    -.6053392     .529756
+                            edu3 |   .4151271   .3622798     1.15   0.253    -.2983412    1.128595
+                            edu4 |   .1788282   .4132964     0.43   0.666    -.6351114    .9927678
+                            edu5 |  -.0786811   .4286153    -0.18   0.854    -.9227896    .7654273
+                                 |
+                    income_level |
+                     Low-middle  |   -.235195   .3360736    -0.70   0.485    -.8970532    .4266631
+                   Upper-middle  |  -.4206215   .3734111    -1.13   0.261    -1.156012    .3147687
+                           High  |  -.4014577    .351715    -1.14   0.255     -1.09412    .2912046
+                                 |
+                      treat_tech |  -.1397882   .2032759    -0.69   0.492    -.5401166    .2605402
+                           _cons |   .6369559   .6901373     0.92   0.357    -.7221901    1.996102
+--------------------------------------------------------------------------------------------------
+
+. sum tech_ms_pca_old
+variable tech_ms_pca_old not found
+r(111);
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =       
+>  276
+                                                 Number of comp.  =       
+>    6
+                                                 Trace            =       
+>    6
+    Rotation: (unrotated = principal)            Rho              =     1.
+> 0000
+
+    ----------------------------------------------------------------------
+> ----
+       Component |   Eigenvalue   Difference         Proportion   Cumulati
+> ve
+    -------------+--------------------------------------------------------
+> ----
+           Comp1 |      2.50366      1.51217             0.4173       0.41
+> 73
+           Comp2 |      .991482      .210105             0.1652       0.58
+> 25
+           Comp3 |      .781377      .146984             0.1302       0.71
+> 28
+           Comp4 |      .634393      .065095             0.1057       0.81
+> 85
+           Comp5 |      .569298     .0495022             0.0949       0.91
+> 34
+           Comp6 |      .519795            .             0.0866       1.00
+> 00
+    ----------------------------------------------------------------------
+> ----
+
+Principal components (eigenvectors) 
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+       tech_ms_1 |   0.4218   -0.2609   -0.4989    0.5106   -0.0520 
+       tech_ms_2 |   0.4678    0.0465   -0.3554   -0.1236   -0.4537 
+       tech_ms_3 |   0.3748    0.6034   -0.1605   -0.0212    0.6814 
+       tech_ms_4 |   0.4317   -0.2944    0.0745   -0.7700    0.0533 
+       tech_ms_5 |   0.3700   -0.5059    0.5204    0.3145    0.3408 
+       tech_ms_6 |   0.3734    0.4724    0.5681    0.1780   -0.4562 
+    ----------------------------------------------------------------
+
+    --------------------------------------
+        Variable |    Comp6 | Unexplained 
+    -------------+----------+-------------
+       tech_ms_1 |   0.4917 |           0 
+       tech_ms_2 |  -0.6569 |           0 
+       tech_ms_3 |  -0.0702 |           0 
+       tech_ms_4 |   0.3544 |           0 
+       tech_ms_5 |  -0.3483 |           0 
+       tech_ms_6 |   0.2736 |           0 
+    --------------------------------------
+
+. predict tech_ms_pca_old
+(score assumed)
+(5 components skipped)
+
+Scoring coefficients 
+    sum of squares(column-loading) = 1
+
+    ----------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5 
+    -------------+--------------------------------------------------
+       tech_ms_1 |   0.4218   -0.2609   -0.4989    0.5106   -0.0520 
+       tech_ms_2 |   0.4678    0.0465   -0.3554   -0.1236   -0.4537 
+       tech_ms_3 |   0.3748    0.6034   -0.1605   -0.0212    0.6814 
+       tech_ms_4 |   0.4317   -0.2944    0.0745   -0.7700    0.0533 
+       tech_ms_5 |   0.3700   -0.5059    0.5204    0.3145    0.3408 
+       tech_ms_6 |   0.3734    0.4724    0.5681    0.1780   -0.4562 
+    ----------------------------------------------------------------
+
+    ------------------------
+        Variable |    Comp6 
+    -------------+----------
+       tech_ms_1 |   0.4917 
+       tech_ms_2 |  -0.6569 
+       tech_ms_3 |  -0.0702 
+       tech_ms_4 |   0.3544 
+       tech_ms_5 |  -0.3483 
+       tech_ms_6 |   0.2736 
+    ------------------------
+
+. sum tech_ms_pca_old
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+tech_ms_pc~d |        276    4.14e-10    1.582294  -5.142719   2.828761
+
+. reg negotiate_pca t_other##c.tech_ms_pca_old $info_source $orga cops_att
+> ended $socioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =       
+>  276
+                                                F(22, 253)        =       
+> 4.37
+                                                Prob > F          =     0.
+> 0000
+                                                R-squared         =     0.
+> 2397
+                                                Root MSE          =     1.
+> 6466
+
+--------------------------------------------------------------------------
+> ----
+             |               Robust
+negotiate_~a |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Inter
+> val]
+-------------+------------------------------------------------------------
+> ----
+t_other_de~n |
+      Other  |    1.54168   .2258627     6.83   0.000     1.096869     1.9
+> 8649
+tech_ms_pc~d |   .2081523   .0995345     2.09   0.038     .0121306     .40
+> 4174
+             |
+t_other_de~n#|
+          c. |
+tech_ms_pc~d |
+      Other  |  -.1049977   .1250773    -0.84   0.402     -.351323    .141
+> 3276
+             |
+   info_cc_1 |  -.0315684   .2634229    -0.12   0.905    -.5503494    .487
+> 2126
+   info_cc_2 |    .087314   .2142521     0.41   0.684    -.3346308    .509
+> 2589
+   info_cc_3 |   -.314856   .3365582    -0.94   0.350    -.9776685    .347
+> 9565
+   info_cc_4 |  -.0269245   .2938978    -0.09   0.927    -.6057222    .551
+> 8733
+   info_cc_5 |  -.5270903   .3308863    -1.59   0.112    -1.178733    .124
+> 5522
+       orga2 |    .412668   .3577183     1.15   0.250     -.291817    1.11
+> 7153
+       orga3 |   .0234415   .3413801     0.07   0.945    -.6488673    .695
+> 7503
+       orga4 |   .0003743   .3403636     0.00   0.999    -.6699326    .670
+> 6812
+cops_atten~d |   .0057728   .0162652     0.35   0.723    -.0262597    .037
+> 8053
+      female |  -.0226614   .2127594    -0.11   0.915    -.4416665    .396
+> 3437
+         age |  -.0096736   .0098442    -0.98   0.327    -.0290607    .009
+> 7135
+        edu1 |  -.0470669   .2856445    -0.16   0.869    -.6096109    .515
+> 4772
+        edu3 |   .4332152    .360006     1.20   0.230    -.2757752    1.14
+> 2206
+        edu4 |   .1804187   .4091036     0.44   0.660    -.6252637     .98
+> 6101
+        edu5 |  -.0710066   .4290632    -0.17   0.869     -.915997    .773
+> 9839
+             |
+income_level |
+ Low-middle  |  -.2352386   .3345351    -0.70   0.483     -.894067    .423
+> 5898
+Upper-mid~e  |  -.3824276   .3739559    -1.02   0.307    -1.118891    .354
+> 0355
+       High  |    -.33948   .3590028    -0.95   0.345    -1.046495    .367
+> 5346
+             |
+  treat_tech |  -.1403538   .2028267    -0.69   0.490    -.5397975      .2
+> 5909
+       _cons |   .6389936    .684956     0.93   0.352    -.7099482    1.98
+> 7935
+--------------------------------------------------------------------------
+> ----
+
+. reg negotiate_pca t_other##c.tech_ms_pca_old $info_source $orga cops_attended $so
+> cioeconomics i.income treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(22, 253)        =       4.37
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2397
+                                                Root MSE          =     1.6466
+
+----------------------------------------------------------------------------------
+                 |               Robust
+   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+t_other_delega~n |
+          Other  |    1.54168   .2258627     6.83   0.000     1.096869     1.98649
+ tech_ms_pca_old |   .2081523   .0995345     2.09   0.038     .0121306     .404174
+                 |
+t_other_delega~n#|
+              c. |
+ tech_ms_pca_old |
+          Other  |  -.1049977   .1250773    -0.84   0.402     -.351323    .1413276
+                 |
+       info_cc_1 |  -.0315684   .2634229    -0.12   0.905    -.5503494    .4872126
+       info_cc_2 |    .087314   .2142521     0.41   0.684    -.3346308    .5092589
+       info_cc_3 |   -.314856   .3365582    -0.94   0.350    -.9776685    .3479565
+       info_cc_4 |  -.0269245   .2938978    -0.09   0.927    -.6057222    .5518733
+       info_cc_5 |  -.5270903   .3308863    -1.59   0.112    -1.178733    .1245522
+           orga2 |    .412668   .3577183     1.15   0.250     -.291817    1.117153
+           orga3 |   .0234415   .3413801     0.07   0.945    -.6488673    .6957503
+           orga4 |   .0003743   .3403636     0.00   0.999    -.6699326    .6706812
+   cops_attended |   .0057728   .0162652     0.35   0.723    -.0262597    .0378053
+          female |  -.0226614   .2127594    -0.11   0.915    -.4416665    .3963437
+             age |  -.0096736   .0098442    -0.98   0.327    -.0290607    .0097135
+            edu1 |  -.0470669   .2856445    -0.16   0.869    -.6096109    .5154772
+            edu3 |   .4332152    .360006     1.20   0.230    -.2757752    1.142206
+            edu4 |   .1804187   .4091036     0.44   0.660    -.6252637     .986101
+            edu5 |  -.0710066   .4290632    -0.17   0.869     -.915997    .7739839
+                 |
+    income_level |
+     Low-middle  |  -.2352386   .3345351    -0.70   0.483     -.894067    .4235898
+   Upper-middle  |  -.3824276   .3739559    -1.02   0.307    -1.118891    .3540355
+           High  |    -.33948   .3590028    -0.95   0.345    -1.046495    .3675346
+                 |
+      treat_tech |  -.1403538   .2028267    -0.69   0.490    -.5397975      .25909
+           _cons |   .6389936    .684956     0.93   0.352    -.7099482    1.987935
+----------------------------------------------------------------------------------
+
+. reg negotiate_pca t_other##c.tech_ms_pca_old $info_source $orga cops_attended $so
+> cioeconomics $countrylevel treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(19, 256)        =       4.74
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2357
+                                                Root MSE          =     1.6411
+
+----------------------------------------------------------------------------------
+                 |               Robust
+   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+t_other_delega~n |
+          Other  |   1.477932   .2081081     7.10   0.000      1.06811    1.887754
+ tech_ms_pca_old |   .2286471   .0921535     2.48   0.014     .0471717    .4101225
+                 |
+t_other_delega~n#|
+              c. |
+ tech_ms_pca_old |
+          Other  |   -.119157   .1237969    -0.96   0.337     -.362947    .1246331
+                 |
+       info_cc_1 |  -.0782576     .26123    -0.30   0.765     -.592691    .4361759
+       info_cc_2 |   .0941134   .2125419     0.44   0.658    -.3244398    .5126667
+       info_cc_3 |  -.3432193   .3373525    -1.02   0.310    -1.007559    .3211202
+       info_cc_4 |   -.052864   .2887259    -0.18   0.855    -.6214444    .5157164
+       info_cc_5 |  -.5167584   .3348673    -1.54   0.124    -1.176204    .1426871
+           orga2 |   .3839007   .3508492     1.09   0.275    -.3070175    1.074819
+           orga3 |   .0910461   .3356703     0.27   0.786    -.5699807    .7520729
+           orga4 |   .0607528   .3206454     0.19   0.850    -.5706857    .6921914
+   cops_attended |    .004432   .0161175     0.27   0.784    -.0273078    .0361717
+          female |  -.0188505   .2127516    -0.09   0.929    -.4378167    .4001157
+             age |   -.010187   .0097064    -1.05   0.295    -.0293015    .0089275
+            edu1 |  -.0432177   .2845526    -0.15   0.879    -.6035796    .5171442
+            edu3 |   .4162986   .3529364     1.18   0.239      -.27873    1.111327
+            edu4 |   .1420364   .4111881     0.35   0.730    -.6677056    .9517785
+            edu5 |  -.1110061    .428224    -0.26   0.796    -.9542965    .7322843
+      treat_tech |  -.1271443   .2001342    -0.64   0.526    -.5212633    .2669748
+           _cons |   .5067236   .6517048     0.78   0.438    -.7766617    1.790109
+----------------------------------------------------------------------------------
+
+. do "C:\Users\MAXBUR~1\AppData\Local\Temp\STD6394_000000.tmp"
+
+. global countryspecifics i.income co2_pc ln_science freedom_house_index
+
+. 
+end of do-file
+
+. reg negotiate_pca t_other##c.tech_ms_pca_old $info_source $orga cops_attended $so
+> cioeconomics $countryspecifics treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(25, 250)        =       3.95
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2472
+                                                Root MSE          =     1.6482
+
+----------------------------------------------------------------------------------
+                 |               Robust
+   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+t_other_delega~n |
+          Other  |   1.538605   .2337311     6.58   0.000     1.078272    1.998938
+ tech_ms_pca_old |   .2105934   .1003233     2.10   0.037     .0130069    .4081799
+                 |
+t_other_delega~n#|
+              c. |
+ tech_ms_pca_old |
+          Other  |  -.1180566   .1279464    -0.92   0.357    -.3700468    .1339335
+                 |
+       info_cc_1 |  -.0162993    .261731    -0.06   0.950     -.531778    .4991795
+       info_cc_2 |   .0812326   .2128482     0.38   0.703    -.3379717    .5004369
+       info_cc_3 |  -.3303067   .3387259    -0.98   0.330    -.9974268    .3368135
+       info_cc_4 |  -.0344001    .290808    -0.12   0.906    -.6071461    .5383458
+       info_cc_5 |  -.5096067   .3368989    -1.51   0.132    -1.173129    .1539152
+           orga2 |   .3895138   .3665516     1.06   0.289     -.332409    1.111437
+           orga3 |   .0496435   .3461759     0.14   0.886    -.6321493    .7314363
+           orga4 |   .0755276   .3473016     0.22   0.828    -.6084824    .7595376
+   cops_attended |   .0049583   .0166483     0.30   0.766    -.0278305     .037747
+          female |  -.0130978   .2132456    -0.06   0.951    -.4330847    .4068891
+             age |  -.0080858   .0101905    -0.79   0.428    -.0281559    .0119843
+            edu1 |  -.0496934   .2865579    -0.17   0.862    -.6140687    .5146818
+            edu3 |   .4699771   .3618087     1.30   0.195    -.2426046    1.182559
+            edu4 |   .1926394   .4182066     0.46   0.645    -.6310179    1.016297
+            edu5 |  -.1356955   .4314761    -0.31   0.753     -.985487    .7140961
+                 |
+    income_level |
+     Low-middle  |  -.1591996   .3620268    -0.44   0.661    -.8722107    .5538115
+   Upper-middle  |  -.1061952    .462337    -0.23   0.819    -1.016767    .8043766
+           High  |    .227222   .7002334     0.32   0.746    -1.151887     1.60633
+                 |
+          co2_pc |  -.0690804   .0486909    -1.42   0.157    -.1649771    .0268163
+      ln_science |  -.0311841   .0616468    -0.51   0.613    -.1525974    .0902292
+freedom_house_~x |   .0010359    .005703     0.18   0.856    -.0101962     .012268
+      treat_tech |  -.2034339   .2398576    -0.85   0.397    -.6758331    .2689653
+           _cons |   .7205666   .8045022     0.90   0.371    -.8638991    2.305032
+----------------------------------------------------------------------------------
+
+. reg negotiate_pca t_other##c.tech_ms_pca $info_source $orga cops_attended $socioe
+> conomics $countryspecifics treat_tech, vce(robust)
+
+Linear regression                               Number of obs     =        276
+                                                F(25, 250)        =       3.90
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2414
+                                                Root MSE          =     1.6546
+
+----------------------------------------------------------------------------------
+                 |               Robust
+   negotiate_pca |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+t_other_delega~n |
+          Other  |   1.558803   .2335942     6.67   0.000      1.09874    2.018866
+     tech_ms_pca |    .159664   .1057839     1.51   0.132    -.0486773    .3680053
+                 |
+t_other_delega~n#|
+   c.tech_ms_pca |
+          Other  |   -.043866   .1404488    -0.31   0.755    -.3204796    .2327476
+                 |
+       info_cc_1 |  -.0318577   .2638431    -0.12   0.904    -.5514961    .4877808
+       info_cc_2 |    .090706    .213505     0.42   0.671    -.3297918    .5112037
+       info_cc_3 |  -.3362522   .3399257    -0.99   0.324    -1.005735     .333231
+       info_cc_4 |  -.0365076   .2916891    -0.13   0.900    -.6109888    .5379736
+       info_cc_5 |  -.4914294   .3360432    -1.46   0.145    -1.153266    .1704072
+           orga2 |   .4264086   .3711136     1.15   0.252     -.304499    1.157316
+           orga3 |   .0643945    .345063     0.19   0.852    -.6152065    .7439954
+           orga4 |   .0863435   .3522265     0.25   0.807     -.607366     .780053
+   cops_attended |   .0044043   .0167832     0.26   0.793    -.0286501    .0374588
+          female |  -.0222984   .2141489    -0.10   0.917    -.4440642    .3994675
+             age |  -.0079476   .0102466    -0.78   0.439    -.0281282    .0122331
+            edu1 |  -.0381605   .2893222    -0.13   0.895    -.6079801    .5316591
+            edu3 |    .450812   .3643057     1.24   0.217    -.2666875    1.168311
+            edu4 |   .1897817   .4220809     0.45   0.653     -.641506    1.021069
+            edu5 |  -.1393176   .4304234    -0.32   0.746    -.9870358    .7084006
+                 |
+    income_level |
+     Low-middle  |   -.158433   .3630469    -0.44   0.663    -.8734532    .5565872
+   Upper-middle  |  -.1526869   .4618156    -0.33   0.741    -1.062232    .7568581
+           High  |   .1483849   .6959453     0.21   0.831    -1.222278    1.519048
+                 |
+          co2_pc |  -.0669982   .0485131    -1.38   0.169    -.1625447    .0285484
+      ln_science |  -.0285178   .0616709    -0.46   0.644    -.1499786     .092943
+freedom_house_~x |   .0008092   .0057321     0.14   0.888    -.0104802    .0120986
+      treat_tech |  -.1972355   .2407711    -0.82   0.413    -.6714337    .2769627
+           _cons |    .710824   .8112952     0.88   0.382    -.8870207    2.308669
+----------------------------------------------------------------------------------
+
+. pwcorr tech_ms_pca tech_ms_pca_old
+
+             | tech_m~a tech_~ld
+-------------+------------------
+ tech_ms_pca |   1.0000 
+tech_ms_pc~d |   0.9699   1.0000 
+
+. pcapca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+command pcapca is unrecognized
+r(199);
+
+. pca tech_ms_1 tech_ms_2 tech_ms_3 tech_ms_4 tech_ms_5 tech_ms_6
+
+Principal components/correlation                 Number of obs    =        276
+                                                 Number of comp.  =          6
+                                                 Trace            =          6
+    Rotation: (unrotated = principal)            Rho              =     1.0000
+
+    --------------------------------------------------------------------------
+       Component |   Eigenvalue   Difference         Proportion   Cumulative
+    -------------+------------------------------------------------------------
+           Comp1 |      2.50366      1.51217             0.4173       0.4173
+           Comp2 |      .991482      .210105             0.1652       0.5825
+           Comp3 |      .781377      .146984             0.1302       0.7128
+           Comp4 |      .634393      .065095             0.1057       0.8185
+           Comp5 |      .569298     .0495022             0.0949       0.9134
+           Comp6 |      .519795            .             0.0866       1.0000
+    --------------------------------------------------------------------------
+
+Principal components (eigenvectors) 
+
+    --------------------------------------------------------------------------
+        Variable |    Comp1     Comp2     Comp3     Comp4     Comp5     Comp6 
+    -------------+------------------------------------------------------------
+       tech_ms_1 |   0.4218   -0.2609   -0.4989    0.5106   -0.0520    0.4917 
+       tech_ms_2 |   0.4678    0.0465   -0.3554   -0.1236   -0.4537   -0.6569 
+       tech_ms_3 |   0.3748    0.6034   -0.1605   -0.0212    0.6814   -0.0702 
+       tech_ms_4 |   0.4317   -0.2944    0.0745   -0.7700    0.0533    0.3544 
+       tech_ms_5 |   0.3700   -0.5059    0.5204    0.3145    0.3408   -0.3483 
+       tech_ms_6 |   0.3734    0.4724    0.5681    0.1780   -0.4562    0.2736 
+    --------------------------------------------------------------------------
+
+    ---------------------------
+        Variable | Unexplained 
+    -------------+-------------
+       tech_ms_1 |           0 
+       tech_ms_2 |           0 
+       tech_ms_3 |           0 
+       tech_ms_4 |           0 
+       tech_ms_5 |           0 
+       tech_ms_6 |           0 
+    ---------------------------
+
+. exit, clear
