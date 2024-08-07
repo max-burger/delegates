@@ -1,7 +1,7 @@
 # Replication Package
 This repository contains the raw data and code that replicates tables and figures for the following paper: <br><br>
-__Title:__ TECHNOLOGY-MINDED CLIMATE DELEGATES CAN DELAY SUSTAINABILITY TRANSFORMATIONS <br>
-__Authors:__ Max Burger<sup>1,*</sup>, Donia Mahabadi<sup>1,2</sup> & Björn Vollan<sup>1</sup> <br>
+__Title:__ TECHNOLOGY-MINDED CLIMATE DELEGATES SUPPORT LESS STRINGENT CLIMATE POLICIES<br>
+__Authors:__ Max Burger<sup>1,*</sup>, Donia Mahabadi<sup>1,2</sup> & Björn Vollan<sup>1</sup><br>
 __Affiliations:__ <sup>1</sup> Department of Economics, Philipps University Marburg, 35032 Marburg, Germany <br>
 <sup>2</sup> Leibniz-Institute of Ecological Urban and Regional Development, Weberplatz 1, 01217 Dresden, Germany <br>
 __*Correspondence to:__ Björn Vollan bjoern.vollan@wiwi.uni-marburg.de <br>
