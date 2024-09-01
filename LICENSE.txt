@@ -8,7 +8,8 @@ Custom Data License Agreement
 
 This data is made available under the following terms and conditions:
 
-Permitted Use: The data provided is licensed solely for the purpose of replicating the analyses and results presented in the accompanying publication: [Title of the Original Paper], [Journal Name], [Year]. This means that the data may be used to verify and replicate the findings as published in the original paper.
+Permitted Use: The data provided is licensed solely for the purpose of replicating the analyses and results presented in the accompanying publication: Technology-minded climate delegates
+support less stringent climate policies, Nature Sustainability, forthcoming. This means that the data may be used to verify and replicate the findings as published in the original paper.
 
 Prohibited Use: The data may not be used to produce new or derivative research papers, publications, or any other type of content or analysis that goes beyond replicating the results of the original publication. The data may not be used in part or in whole for any other research, commercial purposes, or publications outside the scope of replication.
 
