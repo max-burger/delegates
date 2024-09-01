@@ -8,16 +8,16 @@ Custom Data License Agreement
 
 This data is made available under the following terms and conditions:
 
-__Permitted Use__: The data provided is licensed solely for the purpose of replicating the analyses and results presented in the accompanying publication: Technology-minded climate delegates support less stringent climate policies, Nature Sustainability, forthcoming. This means that the data may be used to verify and replicate the findings as published in the original paper.
+Permitted Use: The data provided is licensed solely for the purpose of replicating the analyses and results presented in the accompanying publication: Technology-minded climate delegates support less stringent climate policies, Nature Sustainability, forthcoming. This means that the data may be used to verify and replicate the findings as published in the original paper.
 
-__Prohibited Use__: The data may not be used to produce new or derivative research papers, publications, or any other type of content or analysis that goes beyond replicating the results of the original publication. The data may not be used in part or in whole for any other research, commercial purposes, or publications outside the scope of replication.
+Prohibited Use: The data may not be used to produce new or derivative research papers, publications, or any other type of content or analysis that goes beyond replicating the results of the original publication. The data may not be used in part or in whole for any other research, commercial purposes, or publications outside the scope of replication.
 
-__Redistribution__: Redistribution of the data, in part or in full, is not allowed without explicit written permission from the authors. The data must not be shared with third parties for purposes other than replication of the original study.
+Redistribution: Redistribution of the data, in part or in full, is not allowed without explicit written permission from the authors. The data must not be shared with third parties for purposes other than replication of the original study.
 
-__Attribution__: Any use of the data for replication purposes must properly cite the original publication as follows: [Author(s)], [Title of the Paper], [Journal Name], [Year], [DOI].
+Attribution: Any use of the data for replication purposes must properly cite the original publication as follows: [Author(s)], [Title of the Paper], [Journal Name], [Year], [DOI].
 
-__Compliance__: By using the data, you agree to adhere strictly to these terms and conditions. Violation of these terms may result in legal action.
+Compliance: By using the data, you agree to adhere strictly to these terms and conditions. Violation of these terms may result in legal action.
 
-__Contact Information__: For any questions regarding the use of this data, or to request permissions beyond those granted above, please contact Björn Vollan (bjoern.vollan@wiwi.uni-marburg.de).
+Contact Information: For any questions regarding the use of this data, or to request permissions beyond those granted above, please contact Björn Vollan (bjoern.vollan@wiwi.uni-marburg.de).
 
 By accessing or using the data, you agree to the terms and conditions stated above.
