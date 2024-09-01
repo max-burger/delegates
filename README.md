@@ -1,19 +1,20 @@
 # Replication Package
 This repository contains the raw data and code that replicates tables and figures for the following paper: <br><br>
 __Title:__ TECHNOLOGY-MINDED CLIMATE DELEGATES SUPPORT LESS STRINGENT CLIMATE POLICIES<br>
-__Authors:__ Max Burger<sup>1,*</sup>, Donia Mahabadi<sup>1,2</sup> & Björn Vollan<sup>1</sup><br>
+__Authors:__ Maximilian Nicolaus Burger<sup>1,*</sup>, Donia Mahabadi<sup>1,2</sup> & Björn Vollan<sup>1</sup><br>
 __Affiliations:__ <sup>1</sup> Department of Economics, Philipps University Marburg, 35032 Marburg, Germany <br>
 <sup>2</sup> Leibniz-Institute of Ecological Urban and Regional Development, Weberplatz 1, 01217 Dresden, Germany <br>
 __*Correspondence to:__ Björn Vollan bjoern.vollan@wiwi.uni-marburg.de <br>
 __ORCID:__ Burger: 0000-0003-2334-3885; Mahabadi: 0000-0002-2104-9247; Vollan: 0000-0002-5592-4185 <br>
 __Classification:__ Social Sciences, Economic Sciences <br>
 __Keywords:__ Technological optimism, Carbon pricing, Climate delay, Mindset, Leverage points <br>
+__DOI:__ UPCOMING Sciences <br>
 
 ## Abstract
-To transform global policies and actions on climate change, Meadows' leverage framework highlights the need to identify deep leverage points like mindset and paradigm shifts. Our analysis focuses on the mindset of climate delegates regarding the paradigm that technological innovation can achieve the 1.5°C target without systemic changes. Surveying UNFCCC COP24 delegates reveals that respondents believing in technological solutions indeed support less stringent climate policies.
+To transform global policies and actions on climate change, Meadows’ leverage framework highlights the need to identify deep leverage points such as mindset and paradigm shifts. Our analysis focuses on the mindset of climate delegates regarding the paradigm that technological innovation can achieve the 1.5 °C target without systemic changes. Surveying UNFCCC COP24 delegates reveals that respondents believing in technological solutions indeed support less stringent climate policies.
 
 ## License
-The data and code are licensed under a Creative Commons Attribution 4.0 International Public License. See __LICENSE.txt__ for details.
+The data and code are licensed under a Custom Data License Agreement. See __LICENSE.txt__ for details.
 
 ## Software requirements
 All analysis were done in Stata version 16:
