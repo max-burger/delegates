@@ -8,7 +8,7 @@ __*Correspondence to:__ Björn Vollan bjoern.vollan@wiwi.uni-marburg.de <br>
 __ORCID:__ Burger: 0000-0003-2334-3885; Mahabadi: 0000-0002-2104-9247; Vollan: 0000-0002-5592-4185 <br>
 __Classification:__ Social Sciences, Economic Sciences <br>
 __Keywords:__ Technological optimism, Carbon pricing, Climate delay, Mindset, Leverage points <br>
-__DOI:__ ToBeAdded <br>
+__DOI:__ https://doi.org/10.1038/s41893-024-01434-3 <br>
 
 ## Abstract
 To transform global policies and actions on climate change, Meadows’ leverage framework highlights the need to identify deep leverage points such as mindset and paradigm shifts. Our analysis focuses on the mindset of climate delegates regarding the paradigm that technological innovation can achieve the 1.5 °C target without systemic changes. Surveying UNFCCC COP24 delegates reveals that respondents believing in technological solutions indeed support less stringent climate policies.
